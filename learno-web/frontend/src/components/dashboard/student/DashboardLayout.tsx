@@ -21,12 +21,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <StudentDashboardProvider>
-      <div
+<div
         className="student-themed relative flex min-h-screen overflow-hidden"
         style={{
-          "--student-sidebar-width": isLessonDetailRoute
-            ? "0px"
-            : undefined,
+          ...(isLessonDetailRoute ? { "--student-sidebar-width": "0px" } : {}),
           background:
             "radial-gradient(circle at 10% 8%, rgba(var(--student-accent-rgb, 111 168 220), var(--student-accent-soft-opacity, 0.14)), transparent 42%), radial-gradient(circle at 92% 4%, rgba(var(--student-primary-rgb, 44 62 80), 0.12), transparent 34%), radial-gradient(circle at 50% 100%, rgba(var(--student-accent-rgb, 111 168 220), 0.05), transparent 40%), var(--color-bg)",
           color: "var(--color-text)",

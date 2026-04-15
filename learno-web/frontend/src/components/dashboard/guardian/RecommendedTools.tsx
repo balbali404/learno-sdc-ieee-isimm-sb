@@ -13,6 +13,8 @@ import {
   X,
 } from 'lucide-react';
 
+const MODAL_EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
+
 interface RecommendedTool {
   id: string;
   title: string;
@@ -46,7 +48,7 @@ const RECOMMENDED_TOOLS: RecommendedTool[] = [
       'Better attention span',
       'Faster understanding',
     ],
-    imageSrc: '/recommended-tools/interactive-learning.jpg.jpeg',
+    imageSrc: '/Recommanded tools Images(Gardian dashboard)/interactive-learning.jpg.jpeg',
     imageAlt: 'Interactive robotics and digital learning tools for children',
     icon: BrainCircuit,
   },
@@ -68,7 +70,7 @@ const RECOMMENDED_TOOLS: RecommendedTool[] = [
       'Motivation to learn',
       'Emotional growth',
     ],
-    imageSrc: '/recommended-tools/build-confidence.jpg.webp',
+    imageSrc: '/Recommanded tools Images(Gardian dashboard)/build-confidence.jpg.webp',
     imageAlt: 'Confidence-building educational robotics activities',
     icon: CircleCheckBig,
   },
@@ -90,7 +92,7 @@ const RECOMMENDED_TOOLS: RecommendedTool[] = [
       'Improved coordination',
       'Deeper comprehension',
     ],
-    imageSrc: '/recommended-tools/hands-on-exploration.jpg.png',
+    imageSrc: '/Recommanded tools Images(Gardian dashboard)/hands-on-exploration.jpg.png',
     imageAlt: 'Hands-on exploration with robotics and sensory learning kits',
     icon: Hand,
   },
@@ -112,7 +114,7 @@ const RECOMMENDED_TOOLS: RecommendedTool[] = [
       'Decision-making',
       'Cognitive flexibility',
     ],
-    imageSrc: '/recommended-tools/problem-solving.jpg.png',
+    imageSrc: '/Recommanded tools Images(Gardian dashboard)/problem-solving.jpg.png',
     imageAlt: 'Problem-solving activity using educational robots',
     icon: Compass,
   },
@@ -135,7 +137,7 @@ const RECOMMENDED_TOOLS: RecommendedTool[] = [
       'Emotional understanding',
       'Cooperative learning',
     ],
-    imageSrc: '/recommended-tools/social-interaction.jpg.png',
+    imageSrc: '/Recommanded tools Images(Gardian dashboard)/social-interaction.jpg.png',
     imageAlt: 'Collaborative social interaction learning session for children',
     icon: MessageCircleHeart,
   },
@@ -157,7 +159,7 @@ const RECOMMENDED_TOOLS: RecommendedTool[] = [
       'Stable learning environment',
       'Better progress tracking',
     ],
-    imageSrc: '/recommended-tools/structured-support.jpg.webp',
+    imageSrc: '/Recommanded tools Images(Gardian dashboard)/structured-support.jpg.webp',
     imageAlt: 'Structured support plan using guided learning tools',
     icon: Blocks,
   },
@@ -219,8 +221,6 @@ export function RecommendedTools() {
           return (
             <motion.article
               key={tool.id}
-              layoutId={`recommended-tool-${tool.id}`}
-              transition={{ duration: 0.35, ease: MODAL_EASE }}
               className={`group overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
                 isExpanded ? 'pointer-events-none opacity-40' : ''
               }`}
@@ -277,17 +277,13 @@ export function RecommendedTools() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.35, ease: MODAL_EASE }}
+            transition={{ duration: 0.2 }}
           >
             <motion.button
               type="button"
               onClick={() => setActiveToolId(null)}
               aria-label="Close detailed tool view"
               className="absolute inset-0 bg-slate-900/25"
-              initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-              animate={{ opacity: 1, backdropFilter: 'blur(10px)' }}
-              exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-              transition={{ duration: 0.35, ease: MODAL_EASE }}
             />
 
             <div className="relative flex h-full w-full items-end justify-center p-0 sm:items-center sm:p-6">
@@ -296,13 +292,12 @@ export function RecommendedTools() {
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby={`recommended-tool-title-${activeTool.id}`}
-                layoutId={`recommended-tool-${activeTool.id}`}
                 onClick={(event) => event.stopPropagation()}
                 className="relative flex h-[100dvh] w-full flex-col overflow-hidden bg-white shadow-2xl sm:h-auto sm:max-h-[90vh] sm:max-w-3xl sm:rounded-2xl"
-                initial={{ scale: 1, opacity: 0.98 }}
-                animate={{ scale: [1, 1.05, 1], opacity: 1 }}
-                exit={{ scale: 0.96, opacity: 0 }}
-                transition={{ duration: 0.4, ease: MODAL_EASE, times: [0, 0.55, 1] }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ duration: 0.25 }}
               >
                 <div className="relative h-56 w-full bg-slate-100 sm:h-72">
                   <Image
