@@ -1,0 +1,7 @@
+{
+  "C_Cpp.default.compileCommands": "${workspaceFolder}/firmware/compile_commands.json",
+  "C_Cpp.default.configurationProvider": "platformio.platformio-ide",
+  "clangd.arguments": [
+    "--compile-commands-dir=${workspaceFolder}/firmware"
+  ]
+}

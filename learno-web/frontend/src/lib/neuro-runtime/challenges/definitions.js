@@ -1,0 +1,107 @@
+export const CHALLENGE_DEFINITIONS = [
+  {
+    id: "attention-regulation",
+    nameKey: "challengeAttentionRegulation",
+    descriptionKey: "challengeAttentionRegulationDescription",
+    estimatedMinutes: [4, 6],
+    domainTags: ["attention", "engagement"],
+    steps: [
+      { screener: "focus", step: 0 },
+      { screener: "focus", step: 1 },
+      { screener: "focus", step: 2 },
+      { screener: "reflection", step: 0 },
+      { screener: "reflection", step: 2 },
+    ],
+  },
+  {
+    id: "executive-function",
+    nameKey: "challengeExecutiveFunction",
+    descriptionKey: "challengeExecutiveFunctionDescription",
+    estimatedMinutes: [4, 6],
+    domainTags: ["attention", "engagement"],
+    steps: [
+      { screener: "focus", step: 2 },
+      { screener: "focus", step: 3 },
+      { screener: "reflection", step: 2 },
+      { screener: "reflection", step: 3 },
+    ],
+  },
+  {
+    id: "reading-access",
+    nameKey: "challengeReadingAccess",
+    descriptionKey: "challengeReadingAccessDescription",
+    estimatedMinutes: [5, 7],
+    domainTags: ["reading", "attention"],
+    steps: [
+      { screener: "reading", step: 0 },
+      { screener: "reading", step: 1 },
+      { screener: "reading", step: 2 },
+      { screener: "reading", step: 3 },
+      { screener: "focus", step: 2 },
+    ],
+  },
+  {
+    id: "math-processing",
+    nameKey: "challengeMathProcessing",
+    descriptionKey: "challengeMathProcessingDescription",
+    estimatedMinutes: [5, 7],
+    domainTags: ["math", "attention"],
+    steps: [
+      { screener: "math", step: 0 },
+      { screener: "math", step: 1 },
+      { screener: "math", step: 2 },
+      { screener: "math", step: 3 },
+      { screener: "focus", step: 3 },
+    ],
+  },
+  {
+    id: "sensory-support",
+    nameKey: "challengeSensorySupport",
+    descriptionKey: "challengeSensorySupportDescription",
+    estimatedMinutes: [4, 6],
+    domainTags: ["sensory", "attention", "engagement"],
+    steps: [
+      { screener: "comfort", step: 0 },
+      { screener: "comfort", step: 1 },
+      { screener: "comfort", step: 2 },
+      { screener: "comfort", step: 3 },
+      { screener: "focus", step: 0 },
+      { screener: "reflection", step: 3 },
+    ],
+  },
+  {
+    id: "anxiety-support",
+    nameKey: "challengeAnxiety",
+    descriptionKey: "challengeAnxietyDescription",
+    estimatedMinutes: [4, 6],
+    domainTags: ["engagement", "sensory"],
+    steps: [
+      { screener: "reflection", step: 0 },
+      { screener: "reflection", step: 1 },
+      { screener: "reflection", step: 2 },
+      { screener: "reflection", step: 3 },
+      { screener: "reflection", step: 4 },
+      { screener: "comfort", step: 0 },
+      { screener: "comfort", step: 1 },
+      { screener: "comfort", step: 3 },
+    ],
+  },
+  {
+    id: "depression-support",
+    nameKey: "challengeDepression",
+    descriptionKey: "challengeDepressionDescription",
+    estimatedMinutes: [3, 5],
+    domainTags: ["engagement"],
+    steps: [
+      { screener: "reflection", step: 0 },
+      { screener: "reflection", step: 1 },
+      { screener: "reflection", step: 2 },
+      { screener: "reflection", step: 3 },
+      { screener: "reflection", step: 4 },
+    ],
+  },
+];
+
+export const CHALLENGE_MAP = Object.fromEntries(
+  CHALLENGE_DEFINITIONS.map((challenge) => [challenge.id, challenge])
+);

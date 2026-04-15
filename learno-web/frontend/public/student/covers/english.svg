@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="110" y1="70" x2="1090" y2="680" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F43F5E"/>
+      <stop offset="1" stop-color="#EC4899"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="720" rx="36" fill="url(#bg)"/>
+  <circle cx="210" cy="150" r="230" fill="#FFFFFF" fill-opacity="0.13"/>
+  <circle cx="980" cy="620" r="300" fill="#FFFFFF" fill-opacity="0.11"/>
+  <path d="M410 200C510 180 600 180 690 200V520C595 500 505 500 410 520V200Z" fill="#FFE4E6" fill-opacity="0.95"/>
+  <path d="M690 200C780 180 860 180 940 200V520C860 500 780 500 690 520V200Z" fill="#FDF2F8" fill-opacity="0.95"/>
+  <path d="M550 260H635" stroke="#FB7185" stroke-width="8" stroke-linecap="round"/>
+  <path d="M550 320H635" stroke="#FB7185" stroke-width="8" stroke-linecap="round"/>
+  <path d="M550 380H610" stroke="#FB7185" stroke-width="8" stroke-linecap="round"/>
+  <text x="80" y="640" fill="#FFE4E6" font-size="72" font-family="Verdana, Geneva, sans-serif" font-weight="700">ENGLISH</text>
+</svg>

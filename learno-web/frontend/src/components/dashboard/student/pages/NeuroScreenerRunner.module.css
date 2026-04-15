@@ -1,0 +1,446 @@
+.runtimeRoot {
+  --surface: #ffffff;
+  --surface-soft: #f7fbff;
+  --surface-tint: #eaf4fb;
+  --border: #d6eaf8;
+  --ink: #2f3a4a;
+  --ink-soft: #6d7d92;
+  --primary: #6fa8dc;
+  --primary-soft: #8fb8e0;
+  --shadow: 0 14px 30px rgba(111, 168, 220, 0.12);
+  display: grid;
+  gap: 1rem;
+}
+
+.chromeCard {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.9rem;
+  background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+  box-shadow: var(--shadow);
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.headerRow h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.kicker {
+  margin: 0;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.metaText {
+  margin: 0.25rem 0 0;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+}
+
+.headerActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.timeChip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.48rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface-soft);
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.secondaryButton,
+.primaryButton {
+  appearance: none;
+  border: 1px solid var(--border);
+  border-radius: 0.65rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.secondaryButton {
+  background: var(--surface);
+  color: var(--ink-soft);
+}
+
+.secondaryButton:hover {
+  background: var(--surface-soft);
+}
+
+.primaryButton {
+  background: linear-gradient(180deg, var(--primary) 0%, var(--primary-soft) 100%);
+  border-color: transparent;
+  color: #ffffff;
+}
+
+.progressCopy {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--ink-soft);
+  font-size: 0.83rem;
+  font-weight: 600;
+}
+
+.progressTrack {
+  width: 100%;
+  height: 0.72rem;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--surface-tint);
+  border: 1px solid var(--border);
+}
+
+.progressTrack > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--primary) 0%, var(--primary-soft) 100%);
+}
+
+.slotWrapper {
+  position: relative;
+  min-height: 360px;
+}
+
+.slot {
+  display: grid;
+  gap: 1rem;
+}
+
+.pausedOverlay,
+.submittingOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  display: grid;
+  place-items: center;
+  border-radius: 0.9rem;
+  backdrop-filter: blur(4px);
+}
+
+.pausedOverlay {
+  background: rgba(111, 168, 220, 0.18);
+}
+
+.submittingOverlay {
+  background: rgba(255, 255, 255, 0.75);
+  color: var(--ink);
+  gap: 0.45rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.pauseCard {
+  width: min(92vw, 24rem);
+  display: grid;
+  gap: 0.7rem;
+  padding: 1.15rem;
+  border-radius: 0.95rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.pauseCard h4 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.pauseCard p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+.runtimeRoot :global(.task-card) {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.95rem;
+  box-shadow: var(--shadow);
+  padding: 1rem;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.runtimeRoot :global(.task-card.center-card) {
+  text-align: center;
+}
+
+.runtimeRoot :global(.task-card-header) {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.runtimeRoot :global(.task-card-header.compact) {
+  text-align: center;
+  place-items: center;
+}
+
+.runtimeRoot :global(.eyebrow),
+.runtimeRoot :global(.section-label) {
+  margin: 0;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.66rem;
+  font-weight: 700;
+}
+
+.runtimeRoot :global(.task-card h3) {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.runtimeRoot :global(.task-card p) {
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+.runtimeRoot :global(.soft-note),
+.runtimeRoot :global(.passage-block),
+.runtimeRoot :global(.representation-panel),
+.runtimeRoot :global(.stimulus-board),
+.runtimeRoot :global(.mini-panel),
+.runtimeRoot :global(.step-panel) {
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--surface-soft);
+}
+
+.runtimeRoot :global(.soft-note),
+.runtimeRoot :global(.passage-block),
+.runtimeRoot :global(.representation-panel),
+.runtimeRoot :global(.mini-panel),
+.runtimeRoot :global(.step-panel) {
+  padding: 0.8rem;
+}
+
+.runtimeRoot :global(.stimulus-board) {
+  min-height: 10.5rem;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(180deg, #f7fbff 0%, #eaf4fb 100%);
+}
+
+.runtimeRoot :global(.stimulus-board span) {
+  font-size: clamp(2.8rem, 8vw, 5rem);
+  line-height: 1;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+}
+
+.runtimeRoot :global(.mini-stat-row),
+.runtimeRoot :global(.choice-grid),
+.runtimeRoot :global(.token-grid),
+.runtimeRoot :global(.scale-row),
+.runtimeRoot :global(.dual-column-layout),
+.runtimeRoot :global(.task-toolbar),
+.runtimeRoot :global(.action-row.compact),
+.runtimeRoot :global(.slot-list),
+.runtimeRoot :global(.step-stack),
+.runtimeRoot :global(.card-header-row) {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.runtimeRoot :global(.mini-stat-row) {
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+}
+
+.runtimeRoot :global(.choice-grid),
+.runtimeRoot :global(.token-grid.two-up) {
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+.runtimeRoot :global(.scale-row) {
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+}
+
+.runtimeRoot :global(.dual-column-layout) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.runtimeRoot :global(.task-toolbar),
+.runtimeRoot :global(.card-header-row) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.runtimeRoot :global(.action-row.compact) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.runtimeRoot :global(.task-toolbar.centered) {
+  justify-content: center;
+}
+
+.runtimeRoot :global(.choice-chip),
+.runtimeRoot :global(.token-button),
+.runtimeRoot :global(.slot-chip),
+.runtimeRoot :global(.scale-button),
+.runtimeRoot :global(.secondary-button),
+.runtimeRoot :global(.primary-button) {
+  appearance: none;
+  border: 1px solid var(--border);
+  border-radius: 0.65rem;
+  background: var(--surface);
+  color: var(--ink);
+  padding: 0.72rem 0.8rem;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.runtimeRoot :global(.choice-chip),
+.runtimeRoot :global(.token-button),
+.runtimeRoot :global(.slot-chip) {
+  width: 100%;
+  text-align: left;
+}
+
+.runtimeRoot :global(.scale-button) {
+  width: 100%;
+  text-align: center;
+}
+
+.runtimeRoot :global(.primary-button) {
+  border-color: transparent;
+  background: linear-gradient(180deg, var(--primary) 0%, var(--primary-soft) 100%);
+  color: #ffffff;
+}
+
+.runtimeRoot :global(.choice-chip:hover),
+.runtimeRoot :global(.token-button:hover),
+.runtimeRoot :global(.slot-chip:hover),
+.runtimeRoot :global(.scale-button:hover),
+.runtimeRoot :global(.secondary-button:hover) {
+  background: var(--surface-soft);
+}
+
+.runtimeRoot :global(.choice-chip.is-selected),
+.runtimeRoot :global(.token-button.is-selected),
+.runtimeRoot :global(.slot-chip.is-filled),
+.runtimeRoot :global(.scale-button.is-selected),
+.runtimeRoot :global(.step-panel.is-current) {
+  background: linear-gradient(180deg, #f7fbff 0%, #eaf4fb 100%);
+  border-color: rgba(111, 168, 220, 0.55);
+}
+
+.runtimeRoot :global(.slot-chip.is-empty),
+.runtimeRoot :global(.step-panel.is-muted) {
+  opacity: 0.7;
+}
+
+.runtimeRoot :global(.info-pill) {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-soft);
+  color: var(--ink-soft);
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.runtimeRoot :global(.bar-visual) {
+  width: min(100%, 16rem);
+  height: 1rem;
+  border-radius: 999px;
+  background: var(--surface-tint);
+  overflow: hidden;
+}
+
+.runtimeRoot :global(.bar-visual span) {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--primary), var(--primary-soft));
+}
+
+.runtimeRoot :global(.dots-visual) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.runtimeRoot :global(.dot) {
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 999px;
+  background: rgba(111, 168, 220, 0.25);
+}
+
+.runtimeRoot :global(.dot.filled) {
+  background: var(--primary);
+}
+
+.runtimeRoot :global(.table-visual) {
+  display: inline-flex;
+  padding: 0.7rem 0.8rem;
+  border-radius: 0.65rem;
+  border: 1px solid var(--border);
+  background: var(--surface-soft);
+}
+
+.runtimeRoot :global(button[disabled]) {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 840px) {
+  .headerRow {
+    flex-direction: column;
+  }
+
+  .headerActions {
+    justify-content: flex-start;
+  }
+
+  .runtimeRoot :global(.dual-column-layout) {
+    grid-template-columns: 1fr;
+  }
+
+  .runtimeRoot :global(.task-toolbar),
+  .runtimeRoot :global(.card-header-row) {
+    align-items: flex-start;
+  }
+}

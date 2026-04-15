@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Learno Sensor Test Bench</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="backdrop"></div>
+    <main class="layout">
+      <section class="hero panel">
+        <div>
+          <p class="eyebrow">Learno Classroom Pilot</p>
+          <h1>ESP32 sensor test bench</h1>
+          <p class="lede">
+            Use this page to verify the server, ESP32, Wi-Fi link, and each
+            sensor before you move to the full classroom workflow.
+          </p>
+        </div>
+        <div class="hero-stats">
+          <div class="mini-stat">
+            <span>Board status</span>
+            <strong id="boardStatus">Waiting for board</strong>
+          </div>
+          <div class="mini-stat">
+            <span>Socket</span>
+            <strong id="socketState">Connecting</strong>
+          </div>
+          <div class="mini-stat">
+            <span>Last update</span>
+            <strong id="lastUpdate">No data</strong>
+          </div>
+          <div class="mini-stat">
+            <span>Device</span>
+            <strong id="deviceId">--</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel control-panel">
+        <div class="panel-heading">
+          <h2>Test controls</h2>
+          <p>
+            You can test the full dashboard now, even before wiring the real
+            sensors.
+          </p>
+        </div>
+        <div class="button-row">
+          <button id="simulateHealthy" class="action-button">
+            Simulate healthy payload
+          </button>
+          <button id="simulateMissing" class="action-button secondary">
+            Simulate missing sensors
+          </button>
+          <button id="resetSession" class="action-button ghost">
+            Reset session
+          </button>
+        </div>
+        <p id="controlMessage" class="helper-text">
+          Start the server and click a simulation button, or flash the ESP32 to
+          receive real telemetry.
+        </p>
+      </section>
+
+      <section class="card-grid">
+        <article class="metric-card panel accent-light">
+          <span class="metric-label">Light</span>
+          <strong class="metric-value" id="lightLux">--</strong>
+          <span class="metric-unit">lux</span>
+        </article>
+
+        <article class="metric-card panel accent-temp">
+          <span class="metric-label">Temperature</span>
+          <strong class="metric-value" id="temperatureC">--</strong>
+          <span class="metric-unit">deg C</span>
+        </article>
+
+        <article class="metric-card panel accent-humidity">
+          <span class="metric-label">Humidity</span>
+          <strong class="metric-value" id="humidityPct">--</strong>
+          <span class="metric-unit">percent</span>
+        </article>
+
+        <article class="metric-card panel accent-sound">
+          <span class="metric-label">MQ-7 Level</span>
+          <strong class="metric-value" id="mq7LevelPct">--</strong>
+          <span class="metric-unit">percent of ADC range</span>
+        </article>
+
+        <article class="metric-card panel accent-co2">
+          <span class="metric-label">MQ-7 Raw</span>
+          <strong class="metric-value" id="mq7Raw">--</strong>
+          <span class="metric-unit">ADC counts</span>
+        </article>
+
+        <article class="metric-card panel accent-sound">
+          <span class="metric-label">Wi-Fi RSSI</span>
+          <strong class="metric-value" id="heroWifiRssi">--</strong>
+          <span class="metric-unit">dBm</span>
+        </article>
+
+        <article class="metric-card panel accent-co2">
+          <span class="metric-label">Uptime</span>
+          <strong class="metric-value" id="heroUptime">--</strong>
+          <span class="metric-unit">board runtime</span>
+        </article>
+      </section>
+
+      <section class="panel split-panel">
+        <div>
+          <div class="panel-heading">
+            <h2>System tests</h2>
+            <p>These checks tell you whether the data path is healthy.</p>
+          </div>
+          <div class="status-row">
+            <span>Wi-Fi connected</span>
+            <strong id="wifiConnected" class="status-chip">Unknown</strong>
+          </div>
+          <div class="status-row">
+            <span>API configured</span>
+            <strong id="apiConfigured" class="status-chip">Unknown</strong>
+          </div>
+          <div class="status-row">
+            <span>Last POST succeeded</span>
+            <strong id="lastPostOk" class="status-chip">Unknown</strong>
+          </div>
+          <div class="status-row">
+            <span>ESP32 IP</span>
+            <strong id="wifiIp">--</strong>
+          </div>
+          <div class="status-row">
+            <span>Wi-Fi RSSI</span>
+            <strong id="wifiRssi">--</strong>
+          </div>
+          <div class="status-row">
+            <span>Uptime</span>
+            <strong id="uptimeMs">--</strong>
+          </div>
+        </div>
+
+        <div>
+          <div class="panel-heading">
+            <h2>Quick wiring plan</h2>
+            <p>Default pins currently configured in the firmware.</p>
+          </div>
+          <div class="status-row">
+            <span>BH1750 SDA</span>
+            <strong>GPIO21</strong>
+          </div>
+          <div class="status-row">
+            <span>BH1750 SCL</span>
+            <strong>GPIO22</strong>
+          </div>
+          <div class="status-row">
+            <span>DHT22 data</span>
+            <strong>GPIO4</strong>
+          </div>
+          <div class="status-row">
+            <span>MQ-7 analog</span>
+            <strong>GPIO34</strong>
+          </div>
+          <div class="status-row">
+            <span>Wi-Fi</span>
+            <strong id="wifiSsid">--</strong>
+          </div>
+          <div class="status-row">
+            <span>PC receiver</span>
+            <strong>192.168.1.107:3000</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-heading">
+          <h2>Sensor diagnostics</h2>
+          <p>
+            Each sensor is checked for enablement, detection, and valid live
+            reading.
+          </p>
+        </div>
+        <div class="sensor-grid">
+          <article class="sensor-card">
+            <div class="sensor-card-top">
+              <h3>BH1750 light sensor</h3>
+              <span id="bh1750Overall" class="status-chip">Unknown</span>
+            </div>
+            <div class="sensor-meta">
+              <span>Enabled</span>
+              <strong id="bh1750Enabled">--</strong>
+            </div>
+            <div class="sensor-meta">
+              <span>Detected</span>
+              <strong id="bh1750Detected">--</strong>
+            </div>
+            <div class="sensor-meta">
+              <span>Reading valid</span>
+              <strong id="bh1750ReadingOk">--</strong>
+            </div>
+            <p id="bh1750Note" class="sensor-note">No data yet.</p>
+          </article>
+
+          <article class="sensor-card">
+            <div class="sensor-card-top">
+              <h3>DHT22 temp/humidity</h3>
+              <span id="dht22Overall" class="status-chip">Unknown</span>
+            </div>
+            <div class="sensor-meta">
+              <span>Enabled</span>
+              <strong id="dht22Enabled">--</strong>
+            </div>
+            <div class="sensor-meta">
+              <span>Detected</span>
+              <strong id="dht22Detected">--</strong>
+            </div>
+            <div class="sensor-meta">
+              <span>Reading valid</span>
+              <strong id="dht22ReadingOk">--</strong>
+            </div>
+            <p id="dht22Note" class="sensor-note">No data yet.</p>
+          </article>
+
+          <article class="sensor-card">
+            <div class="sensor-card-top">
+              <h3>MQ-7 gas sensor</h3>
+              <span id="mq7Overall" class="status-chip">Unknown</span>
+            </div>
+            <div class="sensor-meta">
+              <span>Enabled</span>
+              <strong id="mq7Enabled">--</strong>
+            </div>
+            <div class="sensor-meta">
+              <span>Detected</span>
+              <strong id="mq7Detected">--</strong>
+            </div>
+            <div class="sensor-meta">
+              <span>Reading valid</span>
+              <strong id="mq7ReadingOk">--</strong>
+            </div>
+            <p id="mq7Note" class="sensor-note">No data yet.</p>
+          </article>
+
+        </div>
+      </section>
+
+      <section class="panel dual-panel">
+        <div>
+          <div class="panel-heading">
+            <h2>Recent readings</h2>
+            <p>Newest readings stay at the top.</p>
+          </div>
+          <div id="historyList" class="history-list"></div>
+        </div>
+
+        <div>
+          <div class="panel-heading">
+            <h2>Raw payload</h2>
+            <p>Useful when debugging the firmware and API contract.</p>
+          </div>
+          <pre id="rawPayload" class="raw-payload">No payload yet.</pre>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="80" y1="50" x2="1120" y2="680" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#334155"/>
+      <stop offset="1" stop-color="#0F172A"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="720" rx="36" fill="url(#bg)"/>
+  <circle cx="200" cy="140" r="230" fill="#FFFFFF" fill-opacity="0.12"/>
+  <circle cx="1000" cy="620" r="300" fill="#FFFFFF" fill-opacity="0.1"/>
+  <g opacity="0.9" stroke="#E2E8F0" stroke-width="10" stroke-linecap="round">
+    <path d="M430 240H760"/>
+    <path d="M430 320H760"/>
+    <path d="M430 400H760"/>
+    <path d="M430 480H760"/>
+  </g>
+  <text x="80" y="640" fill="#E2E8F0" font-size="72" font-family="Verdana, Geneva, sans-serif" font-weight="700">LESSON</text>
+</svg>

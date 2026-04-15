@@ -1,0 +1,10 @@
+<svg width="72" height="72" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="alexAvatarGradient" x1="0" y1="0" x2="72" y2="72" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#3B82F6"/>
+      <stop offset="1" stop-color="#2563EB"/>
+    </linearGradient>
+  </defs>
+  <circle cx="36" cy="36" r="36" fill="url(#alexAvatarGradient)"/>
+  <text x="36" y="43" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="32" font-weight="700" fill="white">A</text>
+</svg>

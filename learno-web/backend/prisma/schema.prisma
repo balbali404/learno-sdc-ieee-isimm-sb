@@ -1,0 +1,1154 @@
+// ─────────────────────────────────────────────────────
+// Learno SDC — Prisma Schema (MVP)
+// Smart Digital Classroom platform
+// Single-role RBAC — each user has exactly ONE role
+// ─────────────────────────────────────────────────────
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ═══════════════════════════════════════════════════════════
+// ENUMS
+// ═══════════════════════════════════════════════════════════
+
+enum Role {
+  SUPER_ADMIN
+  SCHOOL_ADMIN
+  TEACHER
+  STUDENT
+  GUARDIAN
+}
+
+enum Day {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+enum NotificationType {
+  AI_ALERT
+  GENERAL
+}
+
+enum EnrollmentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum MessageStatus {
+  SENT
+  DELIVERED
+  READ
+}
+
+enum SessionStatus {
+  PENDING
+  RECORDING
+  WAITING_UPLOAD
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum SessionStartType {
+  MANUAL
+  AUTO
+  UPLOADED
+}
+
+enum DifficultyLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum ChapterStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum LessonStatus {
+  DRAFT // AI-generated, waiting for teacher approval
+  APPROVED // Teacher approved, visible to students
+  REJECTED // Teacher rejected
+  ARCHIVED // No longer active
+}
+
+enum AchievementCategory {
+  LEARNING // Complete lessons, chapters
+  STREAK // Daily login streaks
+  MASTERY // Subject mastery
+  ENGAGEMENT // Time spent, interactions
+  MILESTONE // XP milestones
+}
+
+enum AlertSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+enum LearnoAlertType {
+  TEACHER_DOMINATING
+  LONG_SILENCE
+  LOW_ENGAGEMENT
+  SESSION_STARTED
+  SESSION_ENDED
+  PROCESSING_COMPLETE
+  RECORDING_RECEIVED
+}
+
+enum NeuroConditionCode {
+  ADHD
+  ASD
+  DYSLEXIA
+  DYSCALCULIA
+  ANXIETY
+  DEPRESSION
+  DEFAULT
+}
+
+enum NeuroTestLifecycle {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum NeuroAssignmentStatus {
+  ASSIGNED
+  IN_PROGRESS
+  SUBMITTED
+  REVIEWED
+  CANCELLED
+}
+
+// ═══════════════════════════════════════════════════════════
+// CORE MODELS
+// ═══════════════════════════════════════════════════════════
+
+/// Multi-tenant school entity
+model School {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  users    User[]
+  classes  Class[]
+  subjects Subject[]
+
+  @@map("schools")
+}
+
+/// All platform users — single role determines permissions
+model User {
+  id           String    @id @default(cuid())
+  schoolId     String?   @map("school_id")
+  fullName     String    @map("full_name")
+  email        String    @unique
+  password     String // bcrypt hash
+  role         Role
+  dateOfBirth  DateTime? @map("date_of_birth")
+  refreshToken String?   @map("refresh_token")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  school  School?      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  profile UserProfile?
+
+  // teacher relations
+  timetableEntries Timetable[] @relation("TeacherTimetable")
+
+  // student relations
+  enrollment                StudentClass?                 @relation("StudentEnrollment")
+  diagnoses                 StudentDiagnosis[]            @relation("StudentDiagnosis")
+  aiAlerts                  AiAlert[]                     @relation("StudentAlert")
+  neuroProfile              StudentNeuroProfile?          @relation("StudentNeuroProfile")
+  neuroAssignmentsAsStudent NeuroTestAssignment[]         @relation("NeuroAssignmentStudent")
+  neuroAssignmentsAsTeacher NeuroTestAssignment[]         @relation("NeuroAssignmentTeacher")
+  neuroAttempts             NeuroTestAttempt[]            @relation("NeuroAttemptStudent")
+  reviewedNeuroAttempts     NeuroTestAttempt[]            @relation("NeuroAttemptReviewer")
+  neuroConditionHistory     StudentNeuroConditionRecord[] @relation("StudentNeuroConditionHistory")
+  diagnosedNeuroConditions  StudentNeuroConditionRecord[] @relation("NeuroConditionTeacher")
+
+  // student learning relations
+  lessonProgress  StudentLessonProgress[]
+  chapterProgress StudentChapterProgress[]
+  focusSessions   StudentFocusSession[]
+  achievements    StudentAchievement[]
+  studentXP       StudentXP?
+
+  // guardian ↔ student many-to-many
+  guardiansOf GuardianStudent[] @relation("GuardianSide")
+  studentsOf  GuardianStudent[] @relation("StudentSide")
+
+  // notifications
+  notifications     Notification[]
+  notificationPrefs NotificationPreference?
+
+  // messaging
+  conversationsA Conversation[] @relation("ConversationA")
+  conversationsB Conversation[] @relation("ConversationB")
+  sentMessages   Message[]      @relation("SentMessages")
+
+  // Learno AI session relations
+  sessions Session[]       @relation("TeacherSessions")
+  advices  TeacherAdvice[] @relation("TeacherAdvices")
+  visionStudentRows SessionVisionStudent[]
+
+  @@index([schoolId])
+  @@index([role])
+  @@map("users")
+}
+
+/// Extended profile data (kept separate from auth fields)
+model UserProfile {
+  id        String  @id @default(cuid())
+  userId    String  @unique @map("user_id")
+  avatarUrl String? @map("avatar_url")
+  phone     String?
+  bio       String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+/// Guardian ↔ Student join table
+model GuardianStudent {
+  guardianId String @map("guardian_id")
+  studentId  String @map("student_id")
+
+  guardian User @relation("GuardianSide", fields: [guardianId], references: [id], onDelete: Cascade)
+  student  User @relation("StudentSide", fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@id([guardianId, studentId])
+  @@map("guardian_student")
+}
+
+// ═══════════════════════════════════════════════════════════
+// ACADEMIC STRUCTURE
+// ═══════════════════════════════════════════════════════════
+
+/// A class / section belonging to a school
+model Class {
+  id        String   @id @default(cuid())
+  schoolId  String   @map("school_id")
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  school              School                @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  timetables          Timetable[]
+  students            StudentClass[]
+  sessions            Session[]
+  neuroAssignments    NeuroTestAssignment[]
+  environmentReadings EnvironmentReading[]
+
+  @@index([schoolId])
+  @@map("classes")
+}
+
+/// Student ↔ Class enrollment (each student belongs to exactly ONE class)
+/// Guardian creates student → status = PENDING → school approves & assigns seat
+model StudentClass {
+  id         String           @id @default(cuid())
+  studentId  String           @unique @map("student_id") // unique = 1 class per student
+  classId    String           @map("class_id")
+  status     EnrollmentStatus @default(PENDING)
+  seatNumber Int?             @map("seat_number") // assigned by school on approval
+  enrolledAt DateTime         @default(now()) @map("enrolled_at")
+
+  student User  @relation("StudentEnrollment", fields: [studentId], references: [id], onDelete: Cascade)
+  class   Class @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@index([classId])
+  @@index([status])
+  @@map("students_classes")
+}
+
+/// Normalised subjects (prevents typos, enables analytics)
+model Subject {
+  id       String @id @default(cuid())
+  schoolId String @map("school_id")
+  name     String
+  color    String @default("#2DD4BF") // Subject badge color for UI
+
+  school     School      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  timetables Timetable[]
+  sessions   Session[]
+  lessons    Lesson[]
+
+  @@unique([schoolId, name])
+  @@map("subjects")
+}
+
+/// Weekly timetable slots — each subject in a class is taught by 1 teacher
+model Timetable {
+  id        String   @id @default(cuid())
+  teacherId String   @map("teacher_id")
+  classId   String   @map("class_id")
+  subjectId String   @map("subject_id")
+  day       Day
+  startTime DateTime @map("start_time") @db.Time()
+  endTime   DateTime @map("end_time") @db.Time()
+
+  teacher  User      @relation("TeacherTimetable", fields: [teacherId], references: [id], onDelete: Cascade)
+  class    Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
+  subject  Subject   @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  sessions Session[]
+
+  @@index([classId, day])
+  @@index([teacherId])
+  @@map("timetable")
+}
+
+// ═══════════════════════════════════════════════════════════
+// AI ALERTS & DIAGNOSIS (placeholder — data comes from FastAPI)
+// ═══════════════════════════════════════════════════════════
+
+/// AI-generated alerts targeting a specific student (identified by seat)
+model AiAlert {
+  id        String   @id @default(cuid())
+  studentId String   @map("student_id")
+  type      String // generic — e.g. "ATTENTION", "BEHAVIOR", etc.
+  message   String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  student User @relation("StudentAlert", fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@map("ai_alerts")
+}
+
+/// Diagnosed condition after a student completes a test
+/// e.g. ADHD, dyscalculia, autism — general for now
+model StudentDiagnosis {
+  id          String   @id @default(cuid())
+  studentId   String   @map("student_id")
+  condition   String // e.g. "ADHD", "DYSCALCULIA", "AUTISM"
+  notes       String?  @db.Text
+  diagnosedAt DateTime @default(now()) @map("diagnosed_at")
+
+  student User @relation("StudentDiagnosis", fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@map("student_diagnoses")
+}
+
+/// Canonical neuro-adaptive condition dictionary used by tests & theming
+model NeuroCondition {
+  id          String             @id @default(cuid())
+  code        NeuroConditionCode @unique
+  label       String
+  description String?            @db.Text
+  isActive    Boolean            @default(true) @map("is_active")
+  createdAt   DateTime           @default(now()) @map("created_at")
+  updatedAt   DateTime           @updatedAt @map("updated_at")
+
+  tests            NeuroTest[]
+  studentProfiles  StudentNeuroProfile[]
+  conditionHistory StudentNeuroConditionRecord[]
+
+  @@map("neuro_conditions")
+}
+
+/// Definition of one neuro test template (questions JSON filled later)
+model NeuroTest {
+  id              String             @id @default(cuid())
+  key             String             @unique
+  title           String
+  description     String?            @db.Text
+  instructionText String?            @map("instruction_text") @db.Text
+  targetCondition NeuroConditionCode @map("target_condition")
+  lifecycle       NeuroTestLifecycle @default(DRAFT)
+  version         Int                @default(1)
+  configJson      Json?              @map("config_json")
+  questionSetJson Json?              @map("question_set_json")
+  scoringJson     Json?              @map("scoring_json")
+  estimatedMin    Int?               @map("estimated_min")
+  createdAt       DateTime           @default(now()) @map("created_at")
+  updatedAt       DateTime           @updatedAt @map("updated_at")
+
+  condition   NeuroCondition        @relation(fields: [targetCondition], references: [code], onDelete: Restrict)
+  assignments NeuroTestAssignment[]
+  attempts    NeuroTestAttempt[]
+
+  @@index([targetCondition])
+  @@index([lifecycle])
+  @@map("neuro_tests")
+}
+
+/// Teacher assignment of a specific test to a specific student
+model NeuroTestAssignment {
+  id                  String                @id @default(cuid())
+  testId              String                @map("test_id")
+  studentId           String                @map("student_id")
+  assignedByTeacherId String                @map("assigned_by_teacher_id")
+  classId             String?               @map("class_id")
+  status              NeuroAssignmentStatus @default(ASSIGNED)
+  visibleToStudent    Boolean               @default(true) @map("visible_to_student")
+  dueAt               DateTime?             @map("due_at")
+  notes               String?               @db.Text
+  assignedAt          DateTime              @default(now()) @map("assigned_at")
+  startedAt           DateTime?             @map("started_at")
+  submittedAt         DateTime?             @map("submitted_at")
+  reviewedAt          DateTime?             @map("reviewed_at")
+  createdAt           DateTime              @default(now()) @map("created_at")
+  updatedAt           DateTime              @updatedAt @map("updated_at")
+
+  test                    NeuroTest                     @relation(fields: [testId], references: [id], onDelete: Cascade)
+  student                 User                          @relation("NeuroAssignmentStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  assignedByTeacher       User                          @relation("NeuroAssignmentTeacher", fields: [assignedByTeacherId], references: [id], onDelete: Restrict)
+  class                   Class?                        @relation(fields: [classId], references: [id], onDelete: SetNull)
+  attempts                NeuroTestAttempt[]
+  profileSources          StudentNeuroProfile[]         @relation("ProfileSourceAssignment")
+  conditionHistorySources StudentNeuroConditionRecord[] @relation("HistorySourceAssignment")
+
+  @@index([studentId, status])
+  @@index([assignedByTeacherId])
+  @@index([classId])
+  @@map("neuro_test_assignments")
+}
+
+/// Student submission/attempt for an assigned neuro test
+model NeuroTestAttempt {
+  id                  String              @id @default(cuid())
+  assignmentId        String              @map("assignment_id")
+  testId              String              @map("test_id")
+  studentId           String              @map("student_id")
+  startedAt           DateTime?           @map("started_at")
+  completedAt         DateTime?           @map("completed_at")
+  durationSec         Int?                @map("duration_sec")
+  answersJson         Json?               @map("answers_json")
+  score               Float?              @map("score")
+  analysisJson        Json?               @map("analysis_json")
+  inferredCondition   NeuroConditionCode? @map("inferred_condition")
+  confidence          Float?              @map("confidence")
+  reviewedByTeacherId String?             @map("reviewed_by_teacher_id")
+  reviewerNotes       String?             @map("reviewer_notes") @db.Text
+  createdAt           DateTime            @default(now()) @map("created_at")
+  updatedAt           DateTime            @updatedAt @map("updated_at")
+
+  assignment              NeuroTestAssignment           @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  test                    NeuroTest                     @relation(fields: [testId], references: [id], onDelete: Cascade)
+  student                 User                          @relation("NeuroAttemptStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  reviewedByTeacher       User?                         @relation("NeuroAttemptReviewer", fields: [reviewedByTeacherId], references: [id], onDelete: SetNull)
+  profileSources          StudentNeuroProfile[]         @relation("ProfileSourceAttempt")
+  conditionHistorySources StudentNeuroConditionRecord[] @relation("HistorySourceAttempt")
+
+  @@index([assignmentId])
+  @@index([studentId, createdAt])
+  @@index([inferredCondition])
+  @@map("neuro_test_attempts")
+}
+
+/// Current condition used by the dashboard theme for each student
+model StudentNeuroProfile {
+  id                 String             @id @default(cuid())
+  studentId          String             @unique @map("student_id")
+  activeCondition    NeuroConditionCode @default(DEFAULT) @map("active_condition")
+  confidence         Float?             @map("confidence")
+  sourceAssignmentId String?            @map("source_assignment_id")
+  sourceAttemptId    String?            @map("source_attempt_id")
+  sourceNotes        String?            @map("source_notes") @db.Text
+  updatedByTeacherId String?            @map("updated_by_teacher_id")
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
+
+  student          User                 @relation("StudentNeuroProfile", fields: [studentId], references: [id], onDelete: Cascade)
+  condition        NeuroCondition       @relation(fields: [activeCondition], references: [code], onDelete: Restrict)
+  sourceAssignment NeuroTestAssignment? @relation("ProfileSourceAssignment", fields: [sourceAssignmentId], references: [id], onDelete: SetNull)
+  sourceAttempt    NeuroTestAttempt?    @relation("ProfileSourceAttempt", fields: [sourceAttemptId], references: [id], onDelete: SetNull)
+
+  @@index([activeCondition])
+  @@map("student_neuro_profiles")
+}
+
+/// Audit log of every condition change for each student
+model StudentNeuroConditionRecord {
+  id                   String             @id @default(cuid())
+  studentId            String             @map("student_id")
+  condition            NeuroConditionCode
+  confidence           Float?             @map("confidence")
+  sourceAssignmentId   String?            @map("source_assignment_id")
+  sourceAttemptId      String?            @map("source_attempt_id")
+  sourceType           String?            @map("source_type")
+  notes                String?            @db.Text
+  diagnosedByTeacherId String?            @map("diagnosed_by_teacher_id")
+  diagnosedAt          DateTime           @default(now()) @map("diagnosed_at")
+
+  student            User                 @relation("StudentNeuroConditionHistory", fields: [studentId], references: [id], onDelete: Cascade)
+  conditionRef       NeuroCondition       @relation(fields: [condition], references: [code], onDelete: Restrict)
+  sourceAssignment   NeuroTestAssignment? @relation("HistorySourceAssignment", fields: [sourceAssignmentId], references: [id], onDelete: SetNull)
+  sourceAttempt      NeuroTestAttempt?    @relation("HistorySourceAttempt", fields: [sourceAttemptId], references: [id], onDelete: SetNull)
+  diagnosedByTeacher User?                @relation("NeuroConditionTeacher", fields: [diagnosedByTeacherId], references: [id], onDelete: SetNull)
+
+  @@index([studentId, diagnosedAt])
+  @@index([condition])
+  @@map("student_neuro_condition_records")
+}
+
+// ═══════════════════════════════════════════════════════════
+// NOTIFICATIONS
+// ═══════════════════════════════════════════════════════════
+
+/// In-app notifications for all user roles
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String           @map("user_id")
+  type      NotificationType @default(GENERAL)
+  title     String
+  message   String
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+  @@map("notifications")
+}
+
+// ═══════════════════════════════════════════════════════════
+// MESSAGING & SETTINGS
+// ═══════════════════════════════════════════════════════════
+
+/// Conversation thread between two users
+model Conversation {
+  id            String    @id @default(cuid())
+  participantA  String    @map("participant_a")
+  participantB  String    @map("participant_b")
+  lastMessageAt DateTime? @map("last_message_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  userA    User      @relation("ConversationA", fields: [participantA], references: [id], onDelete: Cascade)
+  userB    User      @relation("ConversationB", fields: [participantB], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  @@unique([participantA, participantB])
+  @@index([participantA])
+  @@index([participantB])
+  @@map("conversations")
+}
+
+/// Individual message inside a conversation
+model Message {
+  id             String        @id @default(cuid())
+  conversationId String        @map("conversation_id")
+  senderId       String        @map("sender_id")
+  content        String        @db.Text
+  status         MessageStatus @default(SENT)
+  createdAt      DateTime      @default(now()) @map("created_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@index([senderId])
+  @@map("messages")
+}
+
+/// Per-user notification preferences
+model NotificationPreference {
+  id                  String  @id @default(cuid())
+  userId              String  @unique @map("user_id")
+  urgentAlerts        Boolean @default(true) @map("urgent_alerts")
+  environmentWarnings Boolean @default(true) @map("environment_warnings")
+  sessionSummaries    Boolean @default(true) @map("session_summaries")
+  weeklyReports       Boolean @default(false) @map("weekly_reports")
+  soundAlerts         Boolean @default(false) @map("sound_alerts")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_preferences")
+}
+
+// ═══════════════════════════════════════════════════════════
+// LEARNO AI — SESSION & AUDIO PROCESSING
+// ═══════════════════════════════════════════════════════════
+
+/// Recording session - links to timetable entry
+model Session {
+  id          String  @id @default(cuid())
+  timetableId String? @map("timetable_id")
+  teacherId   String  @map("teacher_id")
+  classId     String? @map("class_id")
+  subjectId   String? @map("subject_id")
+
+  // Timing
+  scheduledStart  DateTime? @map("scheduled_start")
+  scheduledEnd    DateTime? @map("scheduled_end")
+  actualStart     DateTime? @map("actual_start")
+  actualEnd       DateTime? @map("actual_end")
+  durationMinutes Int?      @map("duration_minutes")
+
+  // Session metadata
+  startType SessionStartType @default(MANUAL) @map("start_type")
+  status    SessionStatus    @default(PENDING)
+
+  // Processing results (summary)
+  teacherRatio    Float?  @map("teacher_ratio")
+  studentRatio    Float?  @map("student_ratio")
+  teacherMinutes  Float?  @map("teacher_minutes")
+  studentMinutes  Float?  @map("student_minutes")
+  engagementScore Int?    @map("engagement_score")
+  engagementBand  String? @map("engagement_band")
+
+  // Silence summary (not individual gaps)
+  silenceCount      Int?   @map("silence_count")
+  longestSilenceSec Float? @map("longest_silence_sec")
+  totalSilenceSec   Float? @map("total_silence_sec")
+
+  // Transcription
+  transcriptText String? @map("transcript_text") @db.Text
+
+  // Generated files (paths or URLs)
+  lessonPdfPath   String? @map("lesson_pdf_path")
+  advicePdfPath   String? @map("advice_pdf_path")
+  sessionJsonPath String? @map("session_json_path")
+
+  // Error tracking
+  errorMessage String?   @map("error_message") @db.Text
+  processedAt  DateTime? @map("processed_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  timetable Timetable? @relation(fields: [timetableId], references: [id], onDelete: SetNull)
+  teacher   User       @relation("TeacherSessions", fields: [teacherId], references: [id], onDelete: Cascade)
+  class     Class?     @relation(fields: [classId], references: [id], onDelete: SetNull)
+  subject   Subject?   @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+
+  // Child relations
+  recording           Recording?
+  alerts              SessionAlert[]
+  lessonSummary       LessonSummary?
+  teacherAdvice       TeacherAdvice?
+  lesson              Lesson?
+  visionAnalysis      SessionVisionAnalysis?
+  visionStudents      SessionVisionStudent[]
+  environmentReadings EnvironmentReading[]
+
+  @@index([teacherId])
+  @@index([classId])
+  @@index([status])
+  @@index([actualStart])
+  @@map("sessions")
+}
+
+/// Environment telemetry captured from classroom sensors
+model EnvironmentReading {
+  id           String   @id @default(cuid())
+  classId      String?  @map("class_id")
+  sessionId    String?  @map("session_id")
+  deviceId     String?  @map("device_id")
+  co2Ppm       Int?     @map("co2_ppm")
+  temperatureC Float?   @map("temperature_c")
+  humidityPct  Float?   @map("humidity_pct")
+  lightLux     Float?   @map("light_lux")
+  receivedAt   DateTime @map("received_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  class   Class?   @relation(fields: [classId], references: [id], onDelete: SetNull)
+  session Session? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  @@index([classId, receivedAt])
+  @@index([sessionId, receivedAt])
+  @@index([deviceId, receivedAt])
+  @@map("environment_readings")
+}
+
+/// Audio recording file metadata
+model Recording {
+  id        String @id @default(cuid())
+  sessionId String @unique @map("session_id")
+
+  // File info
+  filename      String
+  filePath      String  @map("file_path")
+  fileSizeBytes BigInt? @map("file_size_bytes")
+  fileFormat    String? @map("file_format")
+
+  // Audio properties
+  sampleRate      Int?   @map("sample_rate")
+  channels        Int?
+  durationSeconds Float? @map("duration_seconds")
+
+  // Source
+  source        String  @default("raspberry_pi")
+  raspberryPiId String? @map("raspberry_pi_id")
+
+  // Storage
+  storageLocation String @default("local") @map("storage_location")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("recordings")
+}
+
+/// Alerts generated during/after session processing
+model SessionAlert {
+  id        String @id @default(cuid())
+  sessionId String @map("session_id")
+
+  alertType LearnoAlertType @map("alert_type")
+  message   String
+  severity  AlertSeverity   @default(INFO)
+  data      Json?
+
+  // Status
+  isRead         Boolean   @default(false) @map("is_read")
+  acknowledgedAt DateTime? @map("acknowledged_at")
+  acknowledgedBy String?   @map("acknowledged_by")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([alertType])
+  @@index([isRead])
+  @@map("session_alerts")
+}
+
+/// AI-generated lesson summary
+model LessonSummary {
+  id        String @id @default(cuid())
+  sessionId String @unique @map("session_id")
+
+  // Content
+  title         String?
+  summary       String? @db.Text
+  fullContent   String? @map("full_content") @db.Text
+  keyPoints     Json?   @map("key_points")
+  topicsCovered Json?   @map("topics_covered")
+  sections      Json?
+
+  // AI metadata
+  aiModelUsed String? @map("ai_model_used")
+
+  // Quality metrics
+  wordCount            Int? @map("word_count")
+  estimatedReadMinutes Int? @map("estimated_read_minutes")
+
+  // File
+  pdfPath String? @map("pdf_path")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("lesson_summaries")
+}
+
+/// AI-generated teaching advice
+model TeacherAdvice {
+  id        String @id @default(cuid())
+  sessionId String @unique @map("session_id")
+  teacherId String @map("teacher_id")
+
+  // Scores
+  overallScore    Int?    @map("overall_score")
+  overallFeedback String? @map("overall_feedback") @db.Text
+
+  // Detailed feedback
+  talkTimeFeedback    String? @map("talk_time_feedback") @db.Text
+  engagementFeedback  String? @map("engagement_feedback") @db.Text
+  pacingFeedback      String? @map("pacing_feedback") @db.Text
+  interactionFeedback String? @map("interaction_feedback") @db.Text
+
+  // Recommendations
+  recommendations Json?
+  strengths       Json?
+  areasToImprove  Json? @map("areas_to_improve")
+
+  // Raw metrics
+  metricsSnapshot Json? @map("metrics_snapshot")
+
+  // File
+  pdfPath String? @map("pdf_path")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  teacher User    @relation("TeacherAdvices", fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@index([teacherId])
+  @@map("teacher_advices")
+}
+
+/// Webhook event logs for debugging
+model WebhookLog {
+  id        String  @id @default(cuid())
+  sessionId String? @map("session_id")
+
+  eventType String @map("event_type")
+  direction String // "inbound" or "outbound"
+
+  url            String?
+  method         String?
+  headers        Json?
+  payload        Json?
+  responseStatus Int?    @map("response_status")
+  responseBody   Json?   @map("response_body")
+
+  success      Boolean?
+  errorMessage String?  @map("error_message") @db.Text
+  durationMs   Int?     @map("duration_ms")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([sessionId])
+  @@index([eventType])
+  @@index([createdAt])
+  @@map("webhook_logs")
+}
+
+/// Persisted vision analysis payload from FastAPI/YOLO
+model SessionVisionAnalysis {
+  id        String @id @default(cuid())
+  sessionId String @unique @map("session_id")
+
+  // File pointers
+  visionJsonPath      String? @map("vision_json_path")
+  annotatedVideoPath  String? @map("annotated_video_path")
+  smartOption         String? @map("smart_option")
+  classEngagementAvg  Float?  @map("class_engagement_avg")
+  classEngagementMin  Float?  @map("class_engagement_min")
+  classEngagementMax  Float?  @map("class_engagement_max")
+  classStudentCount   Int?    @map("class_student_count")
+  lowEngagementCount  Int?    @map("low_engagement_count")
+  totalFramesAnalyzed Int?    @map("total_frames_analyzed")
+
+  // Parsed payloads
+  summary Json?
+  raw     Json?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  session  Session                @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  students SessionVisionStudent[]
+
+  @@index([createdAt])
+  @@map("session_vision_analyses")
+}
+
+/// Per-student (seat-linked) records extracted from vision outputs
+model SessionVisionStudent {
+  id               String  @id @default(cuid())
+  visionAnalysisId String  @map("vision_analysis_id")
+  sessionId        String  @map("session_id")
+  studentId        String? @map("student_id")
+  seatNumber       Int?    @map("seat_number")
+
+  // Student key coming from vision analyzer payload (e.g., "0", "1", ...)
+  detectedStudentId String? @map("detected_student_id")
+
+  meanCaes      Float?   @map("mean_caes")
+  minCaes       Float?   @map("min_caes")
+  maxCaes       Float?   @map("max_caes")
+  framesAnalyzed Int?    @map("frames_analyzed")
+  trend         String?
+  lowEngagement Boolean  @default(false) @map("low_engagement")
+  payload       Json?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  visionAnalysis SessionVisionAnalysis @relation(fields: [visionAnalysisId], references: [id], onDelete: Cascade)
+  session        Session               @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  student        User?                 @relation(fields: [studentId], references: [id], onDelete: SetNull)
+
+  @@unique([visionAnalysisId, detectedStudentId])
+  @@index([sessionId])
+  @@index([studentId])
+  @@index([seatNumber])
+  @@map("session_vision_students")
+}
+
+// ═══════════════════════════════════════════════════════════
+// STUDENT LESSONS — AI-generated learning content
+// ═══════════════════════════════════════════════════════════
+
+/// AI-generated lesson with chapters — created from Session transcripts
+model Lesson {
+  id        String  @id @default(cuid())
+  sessionId String? @unique @map("session_id")
+  teacherId String  @map("teacher_id")
+  classId   String? @map("class_id")
+  subjectId String? @map("subject_id")
+
+  // Lesson metadata
+  title       String
+  description String?         @db.Text
+  difficulty  DifficultyLevel @default(INTERMEDIATE)
+  gradeLevel  Int?            @map("grade_level") // e.g. 10 for Grade 10
+  ageGroup    String?         @map("age_group") // e.g. "14-16"
+
+  // Draft/Approval Status — lessons come from AI as DRAFT, teacher must approve
+  status          LessonStatus @default(DRAFT)
+  approvedBy      String?      @map("approved_by") // teacherId who approved
+  approvedAt      DateTime?    @map("approved_at")
+  rejectionReason String?      @map("rejection_reason") @db.Text
+
+  // Duration & XP
+  totalDurationMin Int @default(0) @map("total_duration_min") // Total estimated minutes
+  totalXP          Int @default(100) @map("total_xp")
+
+  // Stats
+  rating           Float @default(0) // Average rating from students
+  ratingCount      Int   @default(0) @map("rating_count")
+  studentsEnrolled Int   @default(0) @map("students_enrolled")
+  completionRate   Float @default(0) @map("completion_rate") // % of students who completed
+
+  // Generated files
+  pdfPath  String? @map("pdf_path")
+  jsonPath String? @map("json_path")
+
+  // Learning objectives and vocabulary (from AI)
+  learningObjectives Json?   @map("learning_objectives")
+  keyVocabulary      Json?   @map("key_vocabulary")
+  subjectColor       String? @map("subject_color") // e.g. "#2DD4BF"
+  language           String? // e.g. "EN", "AR", "FR"
+
+  // Visibility
+  isPublished Boolean @default(false) @map("is_published") // Only true after approval
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  session  Session?                @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  subject  Subject?                @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  chapters Chapter[]
+  progress StudentLessonProgress[]
+
+  @@index([teacherId])
+  @@index([subjectId])
+  @@index([difficulty])
+  @@index([gradeLevel])
+  @@index([status])
+  @@map("lessons")
+}
+
+/// Chapter within a lesson
+model Chapter {
+  id       String @id @default(cuid())
+  lessonId String @map("lesson_id")
+
+  // Chapter metadata
+  chapterNumber Int     @map("chapter_number") // Order: 1, 2, 3...
+  title         String
+  content       String  @db.Text // Full chapter content (markdown or plain text)
+  summary       String? @db.Text // Brief summary
+
+  // Duration & XP
+  durationMin    Int @default(5) @map("duration_min") // Estimated minutes to read
+  readingTimeSec Int @default(120) @map("reading_time_sec") // e.g. "2s reading"
+  xpReward       Int @default(30) @map("xp_reward")
+
+  // Key learning points
+  keyInsight String? @map("key_insight") @db.Text // "A human body replaces 330 billion cells..."
+  keyPoints  Json?   @map("key_points") // Array of bullet points
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  lesson   Lesson                   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  progress StudentChapterProgress[]
+
+  @@unique([lessonId, chapterNumber])
+  @@index([lessonId])
+  @@map("chapters")
+}
+
+/// Student's progress on a lesson
+model StudentLessonProgress {
+  id        String @id @default(cuid())
+  studentId String @map("student_id")
+  lessonId  String @map("lesson_id")
+
+  // Progress tracking
+  chaptersCompleted Int @default(0) @map("chapters_completed")
+  progressPercent   Int @default(0) @map("progress_percent") // 0-100
+  xpEarned          Int @default(0) @map("xp_earned")
+
+  // Time tracking
+  timeSpentMin   Int       @default(0) @map("time_spent_min")
+  lastAccessedAt DateTime? @map("last_accessed_at")
+
+  // Completion
+  isCompleted Boolean   @default(false) @map("is_completed")
+  completedAt DateTime? @map("completed_at")
+
+  // Student rating
+  rating  Int? // 1-5 stars
+  ratedAt DateTime? @map("rated_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  student User   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  lesson  Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, lessonId])
+  @@index([studentId])
+  @@index([lessonId])
+  @@index([isCompleted])
+  @@map("student_lesson_progress")
+}
+
+/// Student's progress on individual chapters
+model StudentChapterProgress {
+  id        String @id @default(cuid())
+  studentId String @map("student_id")
+  chapterId String @map("chapter_id")
+
+  status             ChapterStatus @default(NOT_STARTED)
+  xpEarned           Int           @default(0) @map("xp_earned")
+  timeSpentMin       Int           @default(0) @map("time_spent_min")
+  engagementScore    Int?          @map("engagement_score")
+  concentrationScore Int?          @map("concentration_score")
+
+  startedAt   DateTime? @map("started_at")
+  completedAt DateTime? @map("completed_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  student User    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  chapter Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, chapterId])
+  @@index([studentId])
+  @@index([chapterId])
+  @@map("student_chapter_progress")
+}
+
+/// Focus mode engagement sessions (camera-based)
+model StudentFocusSession {
+  id           String @id @default(cuid())
+  studentId    String @map("student_id")
+  challengeKey String @map("challenge_key")
+
+  source             String? @default("FOCUS_MODE")
+  subject            String?
+  xpEarned           Int     @default(0) @map("xp_earned")
+  durationSec        Int     @default(0) @map("duration_sec")
+  engagementScore    Int     @default(0) @map("engagement_score")
+  concentrationScore Int     @default(0) @map("concentration_score")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  student User @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, challengeKey])
+  @@index([studentId])
+  @@map("student_focus_sessions")
+}
+
+// ═══════════════════════════════════════════════════════════
+// STUDENT GAMIFICATION — XP, Streaks, Achievements
+// ═══════════════════════════════════════════════════════════
+
+/// Student's overall XP and level
+model StudentXP {
+  id        String @id @default(cuid())
+  studentId String @unique @map("student_id")
+
+  // XP & Level
+  totalXP       Int @default(0) @map("total_xp")
+  currentLevel  Int @default(1) @map("current_level")
+  xpToNextLevel Int @default(100) @map("xp_to_next_level")
+
+  // Streaks
+  currentStreak    Int       @default(0) @map("current_streak") // Consecutive days
+  longestStreak    Int       @default(0) @map("longest_streak")
+  lastActivityDate DateTime? @map("last_activity_date")
+
+  // Subject mastery (JSON: { "Biology": 75, "Physics": 60 })
+  subjectMastery Json? @map("subject_mastery")
+
+  // Daily goals
+  dailyGoalXP          Int @default(50) @map("daily_goal_xp")
+  dailyXPEarned        Int @default(0) @map("daily_xp_earned")
+  dailyLessonsTarget   Int @default(1) @map("daily_lessons_target")
+  dailyLessonsDone     Int @default(0) @map("daily_lessons_done")
+  averageEngagement    Int @default(0) @map("average_engagement")
+  averageConcentration Int @default(0) @map("average_concentration")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  student User @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("student_xp")
+}
+
+/// Achievement definitions
+model Achievement {
+  id String @id @default(cuid())
+
+  // Achievement info
+  name        String
+  description String
+  icon        String? // Icon name or URL
+  category    AchievementCategory
+
+  // Unlock criteria
+  xpRequired      Int?    @map("xp_required") // e.g. 1000 XP milestone
+  lessonsRequired Int?    @map("lessons_required") // e.g. Complete 10 lessons
+  streakRequired  Int?    @map("streak_required") // e.g. 7 day streak
+  subjectId       String? @map("subject_id") // For subject-specific achievements
+
+  // Rewards
+  xpReward Int     @default(50) @map("xp_reward")
+  badge    String? // Badge image URL
+
+  // Display
+  isHidden  Boolean @default(false) @map("is_hidden") // Secret achievements
+  sortOrder Int     @default(0) @map("sort_order")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  studentAchievements StudentAchievement[]
+
+  @@map("achievements")
+}
+
+/// Student's unlocked achievements
+model StudentAchievement {
+  id            String @id @default(cuid())
+  studentId     String @map("student_id")
+  achievementId String @map("achievement_id")
+
+  unlockedAt DateTime @default(now()) @map("unlocked_at")
+  xpAwarded  Int      @default(0) @map("xp_awarded")
+  isNew      Boolean  @default(true) @map("is_new") // For "New!" badge in UI
+
+  student     User        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, achievementId])
+  @@index([studentId])
+  @@map("student_achievements")
+}

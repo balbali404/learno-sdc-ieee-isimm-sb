@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="120" y1="90" x2="1080" y2="640" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0D9488"/>
+      <stop offset="1" stop-color="#10B981"/>
+    </linearGradient>
+    <linearGradient id="grid" x1="0" y1="0" x2="1200" y2="720" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity="0.2"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="720" rx="36" fill="url(#bg)"/>
+  <circle cx="170" cy="160" r="240" fill="#FFFFFF" fill-opacity="0.14"/>
+  <circle cx="1030" cy="610" r="300" fill="#FFFFFF" fill-opacity="0.11"/>
+  <path d="M0 360H1200M600 0V720" stroke="url(#grid)" stroke-width="1"/>
+  <g opacity="0.9">
+    <path d="M462 228C490 196 531 178 573 178C616 178 657 196 685 228" stroke="#D1FAE5" stroke-width="16" stroke-linecap="round"/>
+    <path d="M462 492C490 524 531 542 573 542C616 542 657 524 685 492" stroke="#D1FAE5" stroke-width="16" stroke-linecap="round"/>
+    <path d="M462 228C430 264 412 310 412 360C412 410 430 456 462 492" stroke="#ECFDF5" stroke-width="16" stroke-linecap="round"/>
+    <path d="M685 228C717 264 735 310 735 360C735 410 717 456 685 492" stroke="#ECFDF5" stroke-width="16" stroke-linecap="round"/>
+    <circle cx="462" cy="228" r="14" fill="#A7F3D0"/>
+    <circle cx="685" cy="228" r="14" fill="#A7F3D0"/>
+    <circle cx="462" cy="492" r="14" fill="#A7F3D0"/>
+    <circle cx="685" cy="492" r="14" fill="#A7F3D0"/>
+    <circle cx="573" cy="180" r="14" fill="#A7F3D0"/>
+    <circle cx="573" cy="540" r="14" fill="#A7F3D0"/>
+    <circle cx="412" cy="360" r="14" fill="#A7F3D0"/>
+    <circle cx="735" cy="360" r="14" fill="#A7F3D0"/>
+  </g>
+  <text x="80" y="640" fill="#ECFDF5" font-size="72" font-family="Verdana, Geneva, sans-serif" font-weight="700">BIOLOGY</text>
+</svg>

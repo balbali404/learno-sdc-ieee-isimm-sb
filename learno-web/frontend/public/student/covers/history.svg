@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="80" y1="60" x2="1120" y2="680" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D97706"/>
+      <stop offset="1" stop-color="#FB923C"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="720" rx="36" fill="url(#bg)"/>
+  <circle cx="170" cy="140" r="230" fill="#FFFFFF" fill-opacity="0.11"/>
+  <circle cx="1020" cy="610" r="280" fill="#FFFFFF" fill-opacity="0.12"/>
+  <g opacity="0.92">
+    <path d="M430 210H770V510H430V210Z" stroke="#FFEDD5" stroke-width="12"/>
+    <path d="M470 260H730" stroke="#FFE7CC" stroke-width="10" stroke-linecap="round"/>
+    <path d="M470 320H730" stroke="#FFE7CC" stroke-width="10" stroke-linecap="round"/>
+    <path d="M470 380H690" stroke="#FFE7CC" stroke-width="10" stroke-linecap="round"/>
+    <path d="M470 440H640" stroke="#FFE7CC" stroke-width="10" stroke-linecap="round"/>
+  </g>
+  <text x="80" y="640" fill="#FFEDD5" font-size="72" font-family="Verdana, Geneva, sans-serif" font-weight="700">HISTORY</text>
+</svg>

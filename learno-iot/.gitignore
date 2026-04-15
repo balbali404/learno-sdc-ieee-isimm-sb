@@ -1,0 +1,7 @@
+firmware/.pio/
+firmware/.vscode/
+firmware/include/secrets.h
+server/node_modules/
+server/.env
+server/data/telemetry.ndjson
+
