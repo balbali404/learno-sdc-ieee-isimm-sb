@@ -24,7 +24,32 @@ npm install
 
 ### Hardware
 - ESP32 DevKit board
-- Optional sensors: BH1750 (light), DHT22 (temp/humidity), MQ-7 (gas)
+- Optional sensors: BH1750 (light), DHT22 (temp/humidity), MQ-7
+
+## Optional: Raspberry Pi 5 usage
+
+You can also run Raspberry Pi 5 sensor scripts from `raspberry-pi5/`.
+
+- `camera.py`: captures camera frames and computes motion metrics.
+- `microphone.py`
+
+### On Raspberry Pi 5
+
+```bash
+cd learno-iot/raspberry-pi5
+python3 -m pip install opencv-python numpy
+```
+
+### Run scripts
+
+```bash
+cd learno-iot/raspberry-pi5
+python3 microphone.py
+python3 camera.py stream
+python3 camera.py capture classroom.jpg
+```
+
+Before running, set `API_HOST` and `API_PORT` inside both scripts to your telemetry server address.
 
 ## Firmware
 
