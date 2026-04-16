@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
@@ -12,7 +13,6 @@ import {
   FileText,
   BookOpen,
   Settings,
-  Brain,
   Activity,
   LogOut,
   X,
@@ -154,16 +154,19 @@ export function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
         }`}
         style={{ borderRight: '1px solid #ECEEF4' }}
       >
-      <div
+<div
         className="px-5 py-5 flex items-center justify-between"
         style={{ borderBottom: '1px solid #ECEEF4' }}
       >
         <div className="flex items-center gap-3">
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center"
-            style={{ background: '#BFDBFE' }}
-          >
-            <Brain className="w-4 h-4" style={{ color: '#1E3A8A' }} />
+          <div className="relative w-8 h-8">
+            <Image
+              src="/logo/logo.png"
+              alt="Learno Logo"
+              fill
+              className="object-contain"
+              unoptimized
+            />
           </div>
           <div>
             <span

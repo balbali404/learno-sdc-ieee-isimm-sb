@@ -1,7 +1,10 @@
 # Gemini API configuration
 import os
+from dotenv import load_dotenv
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyCjZIQ3eATFWhCJwTqlm-p4rZxBTU4LR2o")
+load_dotenv()
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 GEMINI_FALLBACK_MODELS = [
 	model.strip()

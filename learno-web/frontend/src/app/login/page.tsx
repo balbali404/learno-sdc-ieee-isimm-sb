@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { authApi } from '@/lib/api';
 import { ApiError } from '@/lib/api';
 import { useStoredAuth } from '@/hooks/useStoredAuth';
@@ -101,7 +102,16 @@ export default function LoginPage() {
           </button>
         </div>
 
-        <div className="mb-6">
+        <div className="mb-6 flex flex-col items-center">
+          <div className="relative w-24 h-24 mb-4">
+            <Image
+              src="/logo/logo.png"
+              alt="Learno Logo"
+              fill
+              className="object-contain"
+              unoptimized
+            />
+          </div>
           <h1 className="text-2xl font-bold text-slate-800">
             {mode === 'signin' ? 'Learno Sign In' : 'Create Guardian Account'}
           </h1>

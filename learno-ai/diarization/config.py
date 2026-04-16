@@ -1,5 +1,10 @@
 # Pyannote configuration
-HF_TOKEN = "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"
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+HF_TOKEN = os.getenv("HF_TOKEN", "")
 
 # Diarization settings
 MIN_SILENCE_GAP = 3.0  # seconds

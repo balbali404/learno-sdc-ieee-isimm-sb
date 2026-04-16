@@ -3,9 +3,12 @@ import "./globals.css";
 import { RealtimeDashboardProvider } from '@/components/dashboard/shared/RealtimeDashboardProvider';
 
 export const metadata: Metadata = {
-  title: "Learno Teacher Dashboard",
+  title: "Learno",
   description:
-    "Learno Teacher Portal - monitor student engagement, analytics, and classroom environment.",
+    "Learno - AI-supported smart classroom platform",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({

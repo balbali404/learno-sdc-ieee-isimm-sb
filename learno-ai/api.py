@@ -95,6 +95,10 @@ local_recorder = LocalBackgroundRecorder()
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+# Load environment variables
+from dotenv import load_dotenv
+load_dotenv()
+
 # =============================================================================
 # Configuration - CHANGE THESE VALUES
 # =============================================================================
@@ -105,7 +109,7 @@ VIDEO_UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "video_uploads")
 VIDEO_TEST_INPUT_DIR = os.path.join(os.path.dirname(__file__), "video_test_inputs")
 RESULTS_DIR = os.path.join(os.path.dirname(__file__), "results")
 VIDEO_EXTENSIONS = (".mp4", ".mov", ".mkv", ".avi", ".webm", ".m4v")
-DEFAULT_SESSION_TEST_VIDEO_FILENAME = os.getenv("SESSION_TEST_VIDEO_FILENAME")
+DEFAULT_SESSION_TEST_VIDEO_FILENAME = os.getenv("SESSION_TEST_VIDEO_FILENAME") or "my_video.mp4"
 
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(RECORDINGS_DIR, exist_ok=True)
@@ -135,16 +139,21 @@ def _env_float(name: str, default: float) -> float:
     except (TypeError, ValueError):
         return default
 
+
 # =====================================================
 # EXPRESS.JS WEBHOOK - FastAPI sends data here
 # =====================================================
-EXPRESS_WEBHOOK_URL = "http://localhost:4000/api/learno/webhook"  # CHANGE THIS
-EXPRESS_WEBHOOK_KEY = "saif"  # CHANGE THIS
+EXPRESS_WEBHOOK_URL = os.getenv("EXPRESS_WEBHOOK_URL", "http://localhost:4000/api/learno/webhook")
+EXPRESS_WEBHOOK_KEY = os.getenv("EXPRESS_WEBHOOK_KEY", "saif")
 WEBHOOK_RETRY_COUNT = max(1, _env_int("WEBHOOK_RETRY_COUNT", 3))
 WEBHOOK_RETRY_DELAY_SEC = max(0.2, _env_float("WEBHOOK_RETRY_DELAY_SEC", 1.0))
 WEBHOOK_MAX_PAYLOAD_BYTES = max(
     256_000,
     _env_int("WEBHOOK_MAX_PAYLOAD_BYTES", 15_000_000),
+)
+WEBHOOK_RESPONSE_PREVIEW_CHARS = max(
+    120,
+    _env_int("WEBHOOK_RESPONSE_PREVIEW_CHARS", 400),
 )
 WEBHOOK_RESPONSE_PREVIEW_CHARS = max(
     120,

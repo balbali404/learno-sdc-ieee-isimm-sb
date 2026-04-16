@@ -146,13 +146,13 @@ export function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-[#EBF4FF] border border-[#BFDBFE] flex items-center justify-center">
+              <div className="relative w-9 h-9">
                 <Image
-                  src="/guardian/brand-mark.svg"
-                  alt="Learno"
-                  width={20}
-                  height={20}
-                  priority
+                  src="/logo/logo.png"
+                  alt="Learno Logo"
+                  fill
+                  className="object-contain"
+                  unoptimized
                 />
               </div>
               <div>

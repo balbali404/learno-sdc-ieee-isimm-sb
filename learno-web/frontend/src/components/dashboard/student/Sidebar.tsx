@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -131,11 +132,14 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
         className="flex items-center gap-3 px-4 py-5"
         style={{ borderBottom: "var(--student-card-border-width, 1px) solid var(--color-border)" }}
       >
-        <div
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
-          style={{ background: "linear-gradient(135deg, var(--color-accent), var(--color-primary))" }}
-        >
-          <Star size={18} fill="white" color="white" />
+        <div className="relative h-9 w-9 shrink-0">
+          <Image
+            src="/logo/logo.png"
+            alt="Learno Logo"
+            fill
+            className="object-contain"
+            unoptimized
+          />
         </div>
 
         {!collapsed ? (

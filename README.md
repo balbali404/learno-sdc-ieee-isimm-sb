@@ -53,20 +53,22 @@ Users (Teacher / Student / Guardian / Admin)
 ### 1) Prerequisites
 
 - Node.js 20+
-- Python 3.11+
+- **Python 3.13.0** (required - use exactly this version for learno-ai)
 - PostgreSQL
 - FFmpeg (recommended for AI media processing)
 
 ### 2) Configure environment files
 
 - Backend: copy `learno-web/backend/.env.example` to `learno-web/backend/.env` and fill required values.
-- Frontend: create `learno-web/learn/.env.local` with:
+- Frontend: create `learno-web/frontend/.env.local` with:
 
 ```bash
 NEXT_PUBLIC_API_BASE_URL=http://localhost:4000/api
 NEXT_PUBLIC_SOCKET_BASE_URL=http://localhost:4000
 NEXT_PUBLIC_FASTAPI_WS_BASE_URL=ws://localhost:8000
 ```
+
+- AI Service: copy `learno-ai/.env.example` to `learno-ai/.env` and fill in your API keys (GEMINI_API_KEY, HF_TOKEN, EXPRESS_WEBHOOK_KEY).
 
 ### 3) Initialize database (backend)
 
@@ -94,13 +96,15 @@ cd learno-ai
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
+copy .env.example .env
+# Edit .env and add your API keys
 uvicorn api:app --reload --port 8000
 ```
 
 Frontend:
 
 ```bash
-cd learno-web/learn
+cd learno-web/frontend
 npm install
 npm run dev
 ```

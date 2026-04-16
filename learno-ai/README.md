@@ -96,9 +96,11 @@ Core modules
 
 ### Prerequisites
 
-- Python 3.11+
+- **Python 3.13.0** (required - use exactly this version)
 - FFmpeg available in PATH (recommended for media conversion)
 - GPU optional (service can run on CPU)
+
+> **Note:** This project requires Python 3.13.0 specifically. Using a different version may cause compatibility issues.
 
 ### Install
 
@@ -107,6 +109,23 @@ python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
 ```
+
+### Environment Configuration
+
+1. Copy the example environment file:
+```bash
+copy .env.example .env
+```
+
+2. Edit `.env` and fill in your API keys:
+
+| Variable | Description | Where to get |
+|----------|-------------|--------------|
+| `GEMINI_API_KEY` | Google Gemini API key | [Google AI Studio](https://aistudio.google.com/app/apikey) |
+| `HF_TOKEN` | HuggingFace access token | [HuggingFace Settings](https://huggingface.co/settings/tokens) |
+| `EXPRESS_WEBHOOK_KEY` | Secret for backend webhook | Set the same value in backend `.env` |
+
+3. The remaining variables can be left as defaults for local development.
 
 ### Run
 
@@ -130,6 +149,6 @@ Ensure backend and AI webhook credentials/URLs are aligned in environment config
 
 ## Security and environment notes
 
-- Move all secrets to environment variables before production deployment.
-- Current code contains hardcoded development tokens/keys; treat this repository as development/demo setup until rotated.
-- Restrict CORS, webhook secrets, and file-serving surfaces for production.
+- All secrets are configured via environment variables (see `.env.example`).
+- The `.env` file is excluded from Git - never commit secrets.
+- For production: ensure CORS, webhook secrets, and file-serving are properly restricted.

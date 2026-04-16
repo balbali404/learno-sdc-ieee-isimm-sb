@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard, BookOpen, Users, BarChart2, Bell,
@@ -107,8 +108,14 @@ export function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarProps) {
         <div className="p-5 border-b border-slate-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#54C3EF] to-[#2BB5E8] flex items-center justify-center shadow-lg">
-                <span className="text-white text-sm font-bold">L</span>
+              <div className="relative w-9 h-9">
+                <Image
+                  src="/logo/logo.png"
+                  alt="Learno Logo"
+                  fill
+                  className="object-contain"
+                  unoptimized
+                />
               </div>
               <div>
                 <p className="text-slate-800 font-bold text-base leading-none">Learno</p>
