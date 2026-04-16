@@ -4,9 +4,9 @@
 
 ## What is inside
 
-- `learn`: the primary Next.js application (student, teacher, guardian, admin dashboards).
+- `frontend`: the primary Next.js application (student, teacher, guardian, admin dashboards).
 - `backend`: the Express + Prisma API layer (auth, RBAC, data, realtime, AI integration).
-- `frontend`: legacy static prototype served by backend for lightweight fallback demos.
+
 
 ## Folder structure
 

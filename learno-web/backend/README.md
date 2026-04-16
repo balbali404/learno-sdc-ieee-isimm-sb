@@ -195,14 +195,6 @@ npm start
 - `npm start` - run compiled server
 - `npm run test:webhooks` - helper webhook script
 
-## Seeded demo accounts
-
-From `prisma/seed.ts`:
-
-- Admin: `admin@learno.com` / `Admin123!`
-- Teacher: `farah@learno.com` / `Password123!`
-- Guardian: `guardian@learno.com` / `Password123!`
-- Students: `*@student.learno.com` / `Password123!`
 
 ## Additional docs
 
