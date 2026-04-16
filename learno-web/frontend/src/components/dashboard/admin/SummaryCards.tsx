@@ -14,6 +14,8 @@ interface SummaryCardsProps {
     avgLiveCo2?: number;
     avgLiveLight?: number;
     avgLiveNoise?: number;
+    avgAllCo2?: number | null;
+    avgAllLight?: number | null;
   };
 }
 
@@ -63,7 +65,7 @@ export function SummaryCards({ summary }: SummaryCardsProps) {
       iconColor: "#8B5CF6",
       accentColor: "#8B5CF6",
     },
-    {
+{
       label: "Live Sessions",
       value: String(summary.liveSessions ?? 0),
       trend: `${summary.avgLiveCo2 ?? 0} ppm`,
@@ -75,15 +77,15 @@ export function SummaryCards({ summary }: SummaryCardsProps) {
       accentColor: "#0EA5E9",
     },
     {
-      label: "Avg Live Light",
-      value: `${summary.avgLiveLight ?? 0}%`,
-      trend: `${summary.avgLiveNoise ?? 0} dB`,
-      trendUp: (summary.avgLiveNoise ?? 0) <= 60,
-      trendText: "avg live noise",
+      label: "Avg CO2 (All)",
+      value: summary.avgAllCo2 != null ? `${summary.avgAllCo2} ppm` : "-",
+      trend: summary.avgAllLight != null ? `${summary.avgAllLight}%` : "-",
+      trendUp: summary.avgAllCo2 != null ? summary.avgAllCo2 < 900 : true,
+      trendText: "avg light",
       icon: BookOpen,
-      iconBg: "#FFFBEB",
-      iconColor: "#F59E0B",
-      accentColor: "#F59E0B",
+      iconBg: "#F0FDF9",
+      iconColor: "#14B8A6",
+      accentColor: "#14B8A6",
     },
   ];
 

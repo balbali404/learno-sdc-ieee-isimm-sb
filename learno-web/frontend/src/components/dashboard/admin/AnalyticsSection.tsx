@@ -50,17 +50,17 @@ export function AnalyticsSection({ analytics }: AnalyticsSectionProps) {
   const engGradId = `engGrad-${uid}`;
   const attGradId = `attGrad-${uid}`;
 
-  const engagementData = analytics.engagementTrend;
+const engagementData = analytics.engagementTrend;
   const environmentData = analytics.environmentTrend;
-  const environmentSnapshot = analytics.environmentSnapshot;
+  const environmentAverage = analytics.environmentAverage;
   const liveSessionEnvironment = analytics.liveSessionEnvironment ?? [];
-  const snapshotNoise = environmentSnapshot?.noise ?? 0;
-  const snapshotCo2 = environmentSnapshot?.co2 ?? 0;
-  const snapshotLight = environmentSnapshot?.light ?? 0;
+  const avgNoise = environmentAverage?.noise ?? 0;
+  const avgCo2 = environmentAverage?.co2 ?? 0;
+  const avgLight = environmentAverage?.light ?? 0;
 
-  const snapshotUpdated = environmentSnapshot?.updatedAt
+  const avgUpdated = environmentAverage?.updatedAt
     ? new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit" }).format(
-        new Date(environmentSnapshot.updatedAt),
+        new Date(environmentAverage.updatedAt),
       )
     : "--:--";
 
@@ -201,17 +201,17 @@ export function AnalyticsSection({ analytics }: AnalyticsSectionProps) {
               Live sensor snapshot with trends from recent sessions
             </p>
           </div>
-          <div className="flex items-center gap-2 text-xs text-slate-500">
-            <Wifi size={14} className="text-slate-400" />
-            Updated {snapshotUpdated}
+<div className="flex items-center gap-2 text-xs text-slate-500">
+            <span className="text-amber-600 font-medium">Avg</span>
+            Updated {avgUpdated}
           </div>
         </div>
 
         <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
           {[
-            { label: "Noise", value: snapshotNoise, unit: "dB", metric: "noise" as const },
-            { label: "CO₂", value: snapshotCo2, unit: "ppm", metric: "co2" as const },
-            { label: "Light", value: snapshotLight, unit: "%", metric: "light" as const },
+            { label: "Noise", value: avgNoise, unit: "dB", metric: "noise" as const },
+            { label: "CO₂", value: avgCo2, unit: "ppm", metric: "co2" as const },
+            { label: "Light", value: avgLight, unit: "%", metric: "light" as const },
           ].map((item) => {
             const status = statusByMetric(item.value, item.metric);
             return (

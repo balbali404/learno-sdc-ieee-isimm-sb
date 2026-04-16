@@ -1006,9 +1006,10 @@ export const stopSession = async (req: Request, res: Response): Promise<void> =>
       console.error("environmentIngest refresh failed:", err);
     });
 
-    // Forward to FastAPI
+    // Forward to FastAPI - wait for response to ensure it stopped
+    let fastapiStopped = false;
     try {
-      await fetch(`${FASTAPI_URL}/session/stop`, {
+      const response = await fetch(`${FASTAPI_URL}/session/stop`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1017,8 +1018,17 @@ export const stopSession = async (req: Request, res: Response): Promise<void> =>
           force: forceStop,
         }),
       });
+      if (response.ok) {
+        const result = await response.json() as { success?: boolean; status?: string };
+        fastapiStopped = result.success === true;
+      }
     } catch (err) {
       console.error("Failed to reach FastAPI for session stop:", err);
+    }
+
+    // If force stop but AI didn't stop properly, warn in response
+    if (forceStop && !fastapiStopped) {
+      console.warn(`Force stop requested but AI service may still be processing session ${body.sessionId}`);
     }
 
     res.json({
@@ -1026,6 +1036,7 @@ export const stopSession = async (req: Request, res: Response): Promise<void> =>
       sessionId: body.sessionId,
       status: nextStatus.toLowerCase(),
       force: forceStop,
+      aiStopped: fastapiStopped,
     });
   } catch (error) {
     console.error("stopSession error:", error);

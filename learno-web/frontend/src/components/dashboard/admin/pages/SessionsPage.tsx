@@ -610,6 +610,34 @@ export function SessionsPage() {
                   </div>
                 </div>
               ) : null}
+
+              {selectedSessionDetail.environment ? (
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Environment Data</p>
+                  <div className="mb-3 flex flex-wrap gap-3">
+                    <div className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2">
+                      <p className="text-[10px] font-semibold uppercase text-slate-400">Avg CO₂</p>
+                      <p className="text-sm font-semibold text-slate-800">{selectedSessionDetail.environment.avgCo2} ppm</p>
+                    </div>
+                    <div className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2">
+                      <p className="text-[10px] font-semibold uppercase text-slate-400">Avg Temp</p>
+                      <p className="text-sm font-semibold text-slate-800">{selectedSessionDetail.environment.avgTemperature}°C</p>
+                    </div>
+                    <div className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2">
+                      <p className="text-[10px] font-semibold uppercase text-slate-400">Avg Humidity</p>
+                      <p className="text-sm font-semibold text-slate-800">{selectedSessionDetail.environment.avgHumidity}%</p>
+                    </div>
+                    <div className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2">
+                      <p className="text-[10px] font-semibold uppercase text-slate-400">Avg Light</p>
+                      <p className="text-sm font-semibold text-slate-800">{selectedSessionDetail.environment.avgLight} lux</p>
+                    </div>
+                    <div className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2">
+                      <p className="text-[10px] font-semibold uppercase text-slate-400">Readings</p>
+                      <p className="text-sm font-semibold text-slate-800">{selectedSessionDetail.environment.readingsCount}</p>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
             </div>
           ) : null}
         </div>

@@ -120,12 +120,12 @@ const buildDemoEnvironmentSample = (
   const minuteWave = Math.sin(referenceDate.getTime() / 180000 + (seed % 31));
   const secondWave = Math.cos(referenceDate.getTime() / 19000 + (seed % 17));
 
-  const co2Base = 760 + (seed % 170);
+  const co2Base = 400 + (seed % 100);
   const lightBase = 52 + (seed % 14) - 7;
   const noiseBase = 44 + (seed % 10);
 
   return {
-    co2: clamp(Math.round(co2Base + minuteWave * 120 + secondWave * 24), 520, 1480),
+    co2: clamp(Math.round(co2Base + minuteWave * 80 + secondWave * 20), 380, 1200),
     light: clamp(Math.round(lightBase + minuteWave * 13 + secondWave * 4), 18, 94),
     noise: clamp(Math.round(noiseBase + minuteWave * 7 + secondWave * 2), 34, 75),
     updatedAt: referenceDate.toISOString(),
@@ -446,9 +446,9 @@ export const getDashboard = async (req: Request, res: Response): Promise<void> =
       classesCreatedPrevious,
       studentsCreatedCurrent,
       studentsCreatedPrevious,
-      classStudentCounts,
+classStudentCounts,
       latestTeacherSessions,
-      sensorLatest,
+      sensorTelemetry,
       liveSessions,
       latestReadingByClass,
     ] = await Promise.all([
@@ -541,7 +541,13 @@ export const getDashboard = async (req: Request, res: Response): Promise<void> =
         where: { teacher: { schoolId } },
         _max: { createdAt: true },
       }),
-      fetchJson<{ telemetry?: SensorTelemetryPayload }>(SENSOR_API_URL),
+      (async () => {
+        try {
+          return await fetchJson<{ telemetry?: SensorTelemetryPayload }>(SENSOR_API_URL);
+        } catch {
+          return null;
+        }
+      })(),
       prisma.session.findMany({
         where: {
           teacher: { schoolId },
@@ -809,6 +815,8 @@ export const getDashboard = async (req: Request, res: Response): Promise<void> =
       },
     ];
 
+    const demoDataAllClasses = buildDemoEnvironmentSample("all-classes-avg", now);
+
     const latestReadingMap = new Map<string, any>();
     for (const reading of latestReadingByClass) {
       if (!reading.classId || latestReadingMap.has(reading.classId)) {
@@ -850,18 +858,19 @@ export const getDashboard = async (req: Request, res: Response): Promise<void> =
         noise,
         updatedAt: reading?.receivedAt ? new Date(reading.receivedAt).toISOString() : demoSample.updatedAt,
       };
-    });
+});
 
     const avgLiveCo2 = liveSessionEnvironment.length
       ? Math.round(liveSessionEnvironment.reduce((sum, item) => sum + item.co2, 0) / liveSessionEnvironment.length)
-      : 0;
+      : Math.round(demoDataAllClasses.co2);
     const avgLiveLight = liveSessionEnvironment.length
       ? Math.round(liveSessionEnvironment.reduce((sum, item) => sum + item.light, 0) / liveSessionEnvironment.length)
-      : 0;
+      : Math.round(demoDataAllClasses.light);
     const avgLiveNoise = liveSessionEnvironment.length
       ? Math.round(liveSessionEnvironment.reduce((sum, item) => sum + item.noise, 0) / liveSessionEnvironment.length)
-      : 0;
+      : Math.round(demoDataAllClasses.noise);
 
+    // Create alerts from live session environment data
     const liveEnvironmentAlerts = liveSessionEnvironment.flatMap((item) => {
       const candidates: Array<{ metric: "co2" | "light" | "noise"; value: number }> = [
         { metric: "co2", value: item.co2 },
@@ -885,21 +894,39 @@ export const getDashboard = async (req: Request, res: Response): Promise<void> =
             time: item.updatedAt ? formatTime(new Date(item.updatedAt)) : "Now",
             priority,
             status: "open" as const,
-            metric: entry.metric,
-            value: entry.value,
-            unit,
-            className: item.className,
-            sessionId: item.sessionId,
           };
         })
-        .filter((entry): entry is NonNullable<typeof entry> => Boolean(entry));
+        .filter(Boolean);
     });
 
-    const environmentSnapshot = buildEnvironmentSnapshot(sensorLatest?.telemetry) ?? {
-      noise: avgLiveNoise,
-      co2: avgLiveCo2,
-      light: avgLiveLight,
-      updatedAt: new Date().toISOString(),
+    // Calculate average from all stored environment readings (all sessions)
+    const allReadingsCo2 = latestReadingByClass.filter(r => r.co2Ppm != null).map(r => r.co2Ppm);
+    const allReadingsLight = latestReadingByClass.filter(r => r.lightLux != null).map(r => r.lightLux);
+    const avgAllCo2 = allReadingsCo2.length > 0 
+      ? Math.round(allReadingsCo2.reduce((a, b) => a + b, 0) / allReadingsCo2.length)
+      : null;
+    const avgAllLight = allReadingsLight.length > 0 
+      ? Math.round(allReadingsLight.reduce((a, b) => a + (b <= 100 ? b : (b / 800) * 100), 0) / allReadingsLight.length)
+      : null;
+    const avgAllNoise = demoDataAllClasses.noise; // Use demo for noise since not stored
+
+// Static average from all stored readings (for the fixed section - fetched via HTTP)
+    // Use fixed reference time so demo data doesn't change between requests
+    const fixedRefDate = new Date("2024-01-01T00:00:00Z");
+    const demoForAvg = buildDemoEnvironmentSample("all-classes-avg-fixed", fixedRefDate);
+    const environmentAverage = {
+      co2: avgAllCo2 ?? demoForAvg.co2,
+      light: avgAllLight ?? demoForAvg.light,
+      noise: demoForAvg.noise,
+      updatedAt: fixedRefDate.toISOString(),
+    };
+
+    // Live snapshot from sensor API (for real-time WebSocket updates during active sessions)
+    const environmentSnapshot = buildEnvironmentSnapshot(sensorTelemetry?.telemetry) ?? {
+      noise: demoDataAllClasses.noise,
+      co2: demoDataAllClasses.co2,
+      light: demoDataAllClasses.light,
+      updatedAt: now.toISOString(),
     };
 
     const environmentTrend = buildEnvironmentTrend(environmentSnapshot);
@@ -911,7 +938,7 @@ export const getDashboard = async (req: Request, res: Response): Promise<void> =
         schoolName,
         alertsCount: openAlertsCount,
       },
-      summary: {
+summary: {
         totalStudents: studentCount,
         activeClasses: classCount,
         alertsToday: alertsTodayCount,
@@ -926,11 +953,14 @@ export const getDashboard = async (req: Request, res: Response): Promise<void> =
         avgLiveCo2,
         avgLiveLight,
         avgLiveNoise,
+        avgAllCo2,
+        avgAllLight,
       },
-      analytics: {
+analytics: {
         engagementTrend,
         environmentTrend,
         environmentSnapshot,
+        environmentAverage,
         attentionByClass,
         liveSessionEnvironment,
       },
@@ -1835,7 +1865,7 @@ export const getSessionDetail = async (req: Request, res: Response): Promise<voi
     }
 
     const sessionId = req.params.sessionId as string;
-    const session = await prismaAny.session.findUnique({
+const session = await prismaAny.session.findUnique({
       where: { id: sessionId },
       include: {
         class: { select: { id: true, name: true, schoolId: true } },
@@ -1867,6 +1897,16 @@ export const getSessionDetail = async (req: Request, res: Response): Promise<voi
         },
         alerts: {
           orderBy: { createdAt: "desc" },
+        },
+        environmentReadings: {
+          select: {
+            co2Ppm: true,
+            temperatureC: true,
+            humidityPct: true,
+            lightLux: true,
+            receivedAt: true,
+          },
+          orderBy: { receivedAt: "asc" },
         },
       },
     });
@@ -1930,7 +1970,7 @@ export const getSessionDetail = async (req: Request, res: Response): Promise<voi
             endTime: session.timetable.endTime.toISOString(),
           }
         : null,
-      alerts: session.alerts.map((alert: any) => ({
+alerts: session.alerts.map((alert: any) => ({
         id: alert.id,
         type: alert.alertType,
         title: null,
@@ -1939,6 +1979,22 @@ export const getSessionDetail = async (req: Request, res: Response): Promise<voi
         resolved: !!alert.acknowledgedAt || alert.isRead,
         createdAt: alert.createdAt.toISOString(),
       })),
+      environment: session.environmentReadings.length > 0
+        ? {
+            avgCo2: Math.round(session.environmentReadings.reduce((sum: number, r: any) => sum + (r.co2Ppm ?? 0), 0) / session.environmentReadings.length),
+            avgTemperature: Math.round(session.environmentReadings.reduce((sum: number, r: any) => sum + (r.temperatureC ?? 0), 0) / session.environmentReadings.length * 10) / 10,
+            avgHumidity: Math.round(session.environmentReadings.reduce((sum: number, r: any) => sum + (r.humidityPct ?? 0), 0) / session.environmentReadings.length * 10) / 10,
+            avgLight: Math.round(session.environmentReadings.reduce((sum: number, r: any) => sum + (r.lightLux ?? 0), 0) / session.environmentReadings.length),
+            readingsCount: session.environmentReadings.length,
+            readings: session.environmentReadings.map((r: any) => ({
+              co2: r.co2Ppm,
+              temperature: r.temperatureC,
+              humidity: r.humidityPct,
+              light: r.lightLux,
+              receivedAt: r.receivedAt.toISOString(),
+            })),
+          }
+        : null,
     });
   } catch (error) {
     console.error("getSessionDetail error:", error);

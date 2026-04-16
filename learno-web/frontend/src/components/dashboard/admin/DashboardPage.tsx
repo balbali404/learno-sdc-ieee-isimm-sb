@@ -35,6 +35,8 @@ const emptyData: AdminDashboardResponse = {
   analytics: {
     engagementTrend: [],
     environmentTrend: [],
+    environmentSnapshot: { noise: 45, co2: 420, light: 55, updatedAt: new Date().toISOString() },
+    environmentAverage: { noise: 45, co2: 420, light: 55, updatedAt: new Date().toISOString() },
     attentionByClass: [],
   },
   teachers: [],
@@ -68,6 +70,13 @@ interface LiveSessionEnvironmentItem {
   light: number;
   noise: number;
   updatedAt?: string | null;
+}
+
+interface EnvironmentAverage {
+  noise: number;
+  co2: number;
+  light: number;
+  updatedAt: string;
 }
 
 type EnvironmentMetric = "co2" | "light";

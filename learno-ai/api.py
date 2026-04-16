@@ -1257,6 +1257,21 @@ async def process_audio_background(
 ):
     """Background task to process audio and send real-time updates."""
     try:
+        # Check if session was force-stopped - abort if so
+        session_status = session_data.get("status")
+        forced_stop = session_data.get("forced_stop", False)
+        
+        # Handle both enum and string comparisons
+        status_failed = (
+            session_status == SessionStatus.FAILED or 
+            session_status == "failed" or
+            str(session_status) == "failed"
+        )
+        
+        if status_failed or forced_stop:
+            print(f"⚠️ Session {session_id} was force-stopped (status={session_status}, forced={forced_stop}), aborting audio processing")
+            return
+
         # Update status
         active_sessions[session_id]["status"] = SessionStatus.PROCESSING
 
@@ -1644,6 +1659,23 @@ async def process_audio_with_test_video_background(
     session_data: dict,
 ):
     """Run audio pipeline and YOLO video pipeline in parallel and join final result."""
+    # Check if session was force-stopped - abort if so
+    session_status = session_data.get("status")
+    forced_stop = session_data.get("forced_stop", False)
+    
+    # Handle both enum and string comparisons
+    status_failed = (
+        session_status == SessionStatus.FAILED or 
+        session_status == "failed" or
+        str(session_status) == "failed"
+    )
+    
+    if status_failed or forced_stop:
+        print(f"⚠️ Session {session_id} was force-stopped (status={session_status}, forced={forced_stop}), aborting audio+video processing")
+        return
+
+    print(f"🔄 Starting audio+video processing for session {session_id} (status={session_status})")
+
     result_dir = _ensure_session_result_dir(session_id, session_data)
 
     audio_filename = _safe_filename(os.path.basename(audio_path), fallback_stem="session_audio")
@@ -1869,6 +1901,20 @@ async def process_audio_with_test_video_background(
 
 async def process_video_background(session_id: str, video_path: str, session_data: dict):
     """Run audio and vision analysis in parallel for uploaded video."""
+    # Check if session was force-stopped - abort if so
+    session_status = session_data.get("status")
+    forced_stop = session_data.get("forced_stop", False)
+    
+    status_failed = (
+        session_status == SessionStatus.FAILED or 
+        session_status == "failed" or
+        str(session_status) == "failed"
+    )
+    
+    if status_failed or forced_stop:
+        print(f"⚠️ Session {session_id} was force-stopped, aborting video processing")
+        return
+    
     result_dir = _ensure_session_result_dir(session_id, session_data)
     output_dir = result_dir
     base_name = os.path.splitext(os.path.basename(video_path))[0]

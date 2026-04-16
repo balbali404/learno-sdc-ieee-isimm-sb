@@ -187,12 +187,12 @@ const buildDemoEnvironmentSample = (
   const minuteWave = Math.sin(referenceDate.getTime() / 180000 + (seed % 31));
   const secondWave = Math.cos(referenceDate.getTime() / 19000 + (seed % 17));
 
-  const co2Base = 760 + (seed % 170);
+  const co2Base = 400 + (seed % 100);
   const lightBase = 52 + (seed % 14) - 7;
   const noiseBase = 44 + (seed % 10);
 
   return {
-    co2: clamp(Math.round(co2Base + minuteWave * 120 + secondWave * 24), 520, 1480),
+    co2: clamp(Math.round(co2Base + minuteWave * 80 + secondWave * 20), 380, 1200),
     light: clamp(Math.round(lightBase + minuteWave * 13 + secondWave * 4), 18, 94),
     noise: clamp(Math.round(noiseBase + minuteWave * 7 + secondWave * 2), 34, 75),
     updatedAt: referenceDate.toISOString(),
@@ -531,53 +531,67 @@ export function DashboardOverview() {
     joinedSessionIdsRef.current = nextSessionIds;
   }, [activeSession?.classId, activeSession?.id, token]);
 
-  useEffect(() => {
+useEffect(() => {
     if (!token || !activeSession?.classId) {
       setLiveEnvironment(null);
       return;
     }
 
     let cancelled = false;
+    let pollInterval: ReturnType<typeof setInterval> | null = null;
 
-    teacherApi
-      .getClassEnvironmentLatest(activeSession.classId)
-      .then((response) => {
-        if (cancelled) {
-          return;
-        }
+    const fetchEnvironment = () => {
+      if (cancelled) return;
+      
+      teacherApi
+        .getClassEnvironmentLatest(activeSession.classId)
+        .then((response) => {
+          if (cancelled) {
+            return;
+          }
 
-        const reading = response.reading;
-        if (!reading) {
+          const reading = response.reading;
+          if (!reading) {
+            setLiveEnvironment(
+              buildEnvironmentState(activeSession.classId ?? null, activeSession.id, {
+                updatedAt: null,
+              }),
+            );
+            return;
+          }
+
+          setLiveEnvironment(
+            buildEnvironmentState(reading.classId ?? activeSession.classId ?? null, reading.sessionId ?? activeSession.id, {
+              co2: normalizeCo2(reading.co2Ppm),
+              light: normalizeLight(reading.lightLux),
+              updatedAt: reading.receivedAt,
+            }),
+          );
+        })
+        .catch(() => {
+          if (cancelled) {
+            return;
+          }
+
           setLiveEnvironment(
             buildEnvironmentState(activeSession.classId ?? null, activeSession.id, {
               updatedAt: null,
             }),
           );
-          return;
-        }
+        });
+    };
 
-        setLiveEnvironment(
-          buildEnvironmentState(reading.classId ?? activeSession.classId ?? null, reading.sessionId ?? activeSession.id, {
-            co2: normalizeCo2(reading.co2Ppm),
-            light: normalizeLight(reading.lightLux),
-            updatedAt: reading.receivedAt,
-          }),
-        );
-      })
-      .catch(() => {
-        if (cancelled) {
-          return;
-        }
-
-        setLiveEnvironment(
-          buildEnvironmentState(activeSession.classId ?? null, activeSession.id, {
-            updatedAt: null,
-          }),
-        );
-      });
+    // Fetch immediately
+    fetchEnvironment();
+    
+    // Poll every 3 seconds for real-time updates
+    pollInterval = setInterval(fetchEnvironment, 3000);
 
     return () => {
       cancelled = true;
+      if (pollInterval) {
+        clearInterval(pollInterval);
+      }
     };
   }, [activeSession?.classId, activeSession?.id, token]);
 
@@ -825,13 +839,25 @@ export function DashboardOverview() {
     setError(null);
 
     try {
-      await learnoApi.stopSession({
+      // Fire and forget - trigger stop without waiting for full response
+      const stopPromise = learnoApi.stopSession({
         sessionId: activeSession.id,
         reason: 'force_stop_stuck',
         force: true,
       });
+      
+      // Add to feed immediately
       addFeed('warning', `Session ${activeSession.id.slice(0, 8)} force-stopped.`);
-      await loadData();
+      
+      // Clear state immediately
+      setActiveSession(null);
+      setLiveEnvironment(null);
+      setSessionEvents(prev => [...prev, { type: 'force_stop', message: 'Session force-stopped', timestamp: new Date().toISOString() }]);
+      
+      // Don't wait for the API call - continue immediately
+      // Errors will be silently handled
+      stopPromise.catch(() => {}); // Ignore errors
+      
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message);

@@ -18,8 +18,8 @@ const STUDENTS = [
 ] as const;
 
 const GUARDIANS = [
-  { name: "Karim Adam", email: "karim.adam@gmail.com", studentEmail: "adam@student.learno.com" },
-  { name: "Nour Belkacem", email: "nour.belkacem@gmail.com", studentEmail: "nour@student.learno.com" },
+  { name: "Karim Adam", email: "karim.adam@gmail.com", studentEmails: ["adam@student.learno.com", "nour@student.learno.com", "yasmine@student.learno.com", "rayan@student.learno.com"] },
+  { name: "Nour Belkacem", email: "nour.belkacem@gmail.com", studentEmails: ["lina@student.learno.com", "imad@student.learno.com", "sara@student.learno.com"] },
 ] as const;
 
 const DEFAULT_STUDENT_AGE = 10;
@@ -189,20 +189,22 @@ async function main() {
       create: { fullName: guardianSeed.name, email: guardianSeed.email, password: hashedPassword, role: "GUARDIAN", schoolId: school.id },
     });
 
-    const student = studentRecords.find((s) => s.email === guardianSeed.studentEmail);
-    if (student) {
-      await prisma.guardianStudent.upsert({
-        where: { guardianId_studentId: { guardianId: guardian.id, studentId: student.id } },
-        update: {},
-        create: { guardianId: guardian.id, studentId: student.id },
-      });
+    for (const studentEmail of guardianSeed.studentEmails) {
+      const student = studentRecords.find((s) => s.email === studentEmail);
+      if (student) {
+        await prisma.guardianStudent.upsert({
+          where: { guardianId_studentId: { guardianId: guardian.id, studentId: student.id } },
+          update: {},
+          create: { guardianId: guardian.id, studentId: student.id },
+        });
+      }
     }
 
     guardianRecords.push({
       id: guardian.id,
       name: guardianSeed.name,
       email: guardianSeed.email,
-      studentEmail: guardianSeed.studentEmail,
+      studentEmail: guardianSeed.studentEmails[0],
     });
   }
 

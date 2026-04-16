@@ -23,6 +23,8 @@ export interface AdminDashboardResponse {
     avgLiveCo2?: number;
     avgLiveLight?: number;
     avgLiveNoise?: number;
+    avgAllCo2?: number | null;
+    avgAllLight?: number | null;
   };
   analytics: {
     engagementTrend: Array<{
@@ -38,6 +40,12 @@ export interface AdminDashboardResponse {
       light: number;
     }>;
     environmentSnapshot?: {
+      noise: number;
+      co2: number;
+      light: number;
+      updatedAt: string;
+    };
+    environmentAverage?: {
       noise: number;
       co2: number;
       light: number;
@@ -365,15 +373,29 @@ export interface AdminSessionDetail {
     startTime: string;
     endTime: string;
   } | null;
-  alerts?: Array<{
+alerts?: Array<{
     id: string;
     type: string;
     title?: string | null;
-    message: string;
-    severity?: string | null;
+    message?: string | null;
+    severity: string;
     resolved: boolean;
     createdAt: string;
   }>;
+  environment?: {
+    avgCo2: number;
+    avgTemperature: number;
+    avgHumidity: number;
+    avgLight: number;
+    readingsCount: number;
+    readings: Array<{
+      co2: number | null;
+      temperature: number | null;
+      humidity: number | null;
+      light: number | null;
+      receivedAt: string;
+    }>;
+  } | null;
 }
 
 export interface AdminSessionAnalysis {
