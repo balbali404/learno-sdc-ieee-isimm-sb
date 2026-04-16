@@ -1,126 +1,129 @@
-# Learno IoT - ESP32 Telemetry
+# Learno IoT
 
-This module contains the ESP32 firmware and telemetry server for classroom sensors.
+Learno IoT is the hardware telemetry layer of the project. It supports ESP32 devices for classroom sensing and optional Raspberry Pi 5 sensor nodes, all reporting to the same telemetry server.
 
-## What is already configured
+## Folder structure
 
-- Wi-Fi credentials in `firmware/include/secrets.h` (copy from `secrets.example.h`)
-- API host points to the server on port `3000` (configurable in secrets.h)
+```text
+learno-iot/
+|- firmware/         # ESP32 node 1 firmware (learno-esp32-01)
+|- esp2/             # ESP32 node 2 firmware (learno-esp32-02)
+|- server/           # Node.js telemetry API + web dashboard
+|- raspberry-pi5/    # Raspberry Pi 5 sensor scripts
+|- tools/            # USB driver installers (CP210x)
+```
+
+## What the system captures
+
+- `lightLux` from BH1750 light sensor
+- `mq7Raw`, `mq7Voltage`, `mq7LevelPct` from MQ-7 analog sensor
+- `co2Ppm` estimated from MQ-7 trend model
+- optional `temperatureC` and `humidityPct` from DHT22
+- sensor and connectivity status in `sensorTests` and `systemTests`
 
 ## Prerequisites
 
-### For Server (Node.js)
-- **Node.js 20+**
-- Install dependencies:
+### Windows host (server + ESP32 flashing)
+
+- Node.js 20+
+- Python 3.10+
+- PlatformIO (`python -m pip install platformio`)
+- CP210x driver (`tools/cp210x-driver/CP210xVCPInstaller_x64.exe`)
+
+### Hardware
+
+- ESP32 DevKit board (one or two)
+- BH1750 (I2C light sensor)
+- MQ-7 (analog gas sensor)
+- Optional DHT22
+- Optional Raspberry Pi 5 (camera + MQ-7 input path)
+
+## 1) Start telemetry server
+
 ```powershell
 cd learno-iot/server
 npm install
+npm run start:3001
 ```
 
-### For Firmware (ESP32)
-- **Python 3.10+**
-- **PlatformIO**: `python -m pip install platformio`
-- USB serial driver for your ESP32 board (CP210x or CH340)
+Server runs on `http://localhost:3001`.
 
-### Hardware
-- ESP32 DevKit board
-- Optional sensors: BH1750 (light), DHT22 (temp/humidity), MQ-7
+## 2) Configure ESP32 node 1 (`firmware/`)
 
-## Optional: Raspberry Pi 5 usage
-
-You can also run Raspberry Pi 5 sensor scripts from `raspberry-pi5/`.
-
-- `camera.py`: captures camera frames and computes motion metrics.
-- `microphone.py`
-
-### On Raspberry Pi 5
-
-```bash
-cd learno-iot/raspberry-pi5
-python3 -m pip install opencv-python numpy
-```
-
-### Run scripts
-
-```bash
-cd learno-iot/raspberry-pi5
-python3 microphone.py
-python3 camera.py stream
-python3 camera.py capture classroom.jpg
-```
-
-Before running, set `API_HOST` and `API_PORT` inside both scripts to your telemetry server address.
-
-## Firmware
-
-### Build
 ```powershell
-cd learno-iot/firmware
-python -m platformio run
+cd learno-iot
+copy firmware\include\secrets.example.h firmware\include\secrets.h
 ```
 
-### Flash
-```powershell
-cd learno-iot/firmware
-python -m platformio run --target upload --upload-port COM7
-python -m platformio device monitor --port COM7
-```
-Replace `COM7` with your ESP32's actual COM port.
+Edit `firmware/include/secrets.h`:
 
-### Configure
-Copy `firmware/include/secrets.example.h` to `firmware/include/secrets.h` and edit:
 ```cpp
 constexpr char WIFI_SSID[] = "YourWiFiName";
 constexpr char WIFI_PASSWORD[] = "YourWiFiPassword";
-constexpr char API_HOST[] = "192.168.1.100";  // Your PC's IP
+constexpr char API_HOST[] = "192.168.1.100";
 ```
 
-### Default ESP32 Pins
-- I2C SDA: GPIO21
-- I2C SCL: GPIO22
-- DHT22: GPIO4
-- MQ-7 analog: GPIO34
+## 3) Configure ESP32 node 2 (`esp2/`)
 
-### Enable/Disable Sensors
-Edit `firmware/include/device_config.h` to toggle sensors.
+Edit `esp2/include/secrets.h` with your Wi-Fi and the same server host IP:
 
-## Server
+```cpp
+constexpr char WIFI_SSID[] = "YourWiFiName";
+constexpr char WIFI_PASSWORD[] = "YourWiFiPassword";
+constexpr char API_HOST[] = "192.168.1.100";
+```
 
-### Run
+Both ESP32 firmwares use:
+
+- `API_PORT = 3001`
+- `API_PATH = /api/telemetry`
+
+## 4) Build and flash ESP32
+
+### Node 1 (`firmware/`)
+
 ```powershell
-cd learno-iot/server
-npm start
+cd learno-iot/firmware
+python -m platformio run
+python -m platformio run --target upload --upload-port COM3
+python -m platformio device monitor --port COM3 --baud 115200
 ```
-Server runs on `http://localhost:3000`
 
-### API Endpoints
-- `POST /api/telemetry` - Receive sensor data
-- `GET /api/latest` - Get latest reading
-- `GET /api/history` - Get history (optional limit param)
+### Node 2 (`esp2/`)
 
-## Testing
+```powershell
+cd learno-iot/esp2
+python -m platformio run
+python -m platformio run --target upload --upload-port COM4
+python -m platformio device monitor --port COM4 --baud 115200
+```
 
-### Dry-run (without sensors)
-1. Start server: `npm start`
-2. Open `http://localhost:3000`
-3. Use "Simulate" buttons to test the dashboard
+List ports with:
 
-### Real hardware
-1. Flash firmware to ESP32
-2. Wire sensors
-3. Open serial monitor to see ESP32 status
-4. Watch dashboard for live data
+```powershell
+python -m platformio device list
+```
 
-## Dependencies
+## 5) Sensor pin mapping (ESP32)
 
-### Server (package.json)
-- cors
-- dotenv
-- express
-- ws
+- BH1750 SDA: GPIO21
+- BH1750 SCL: GPIO22
+- DHT22 data: GPIO4
+- MQ-7 analog output: GPIO34
 
-### Firmware (platformio.ini)
-- ArduinoJson
-- BH1750
-- Adafruit DHT sensor library
-- Adafruit Unified Sensor
+## 6) Raspberry Pi 5 node (optional)
+
+Use the dedicated guide in `raspberry-pi5/README.md`.
+
+## API endpoints
+
+- `POST /api/telemetry`
+- `GET /api/health`
+- `GET /api/latest`
+- `GET /api/history?limit=30`
+
+## Operational notes
+
+- ESP32/RPi5 and server must be on reachable network paths.
+- Use the server machine LAN IP as `API_HOST` on devices.
+- If you change the server port, update device port configuration accordingly.

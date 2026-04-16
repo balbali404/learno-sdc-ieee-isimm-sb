@@ -1,27 +1,63 @@
-# Learno ESP2
+# Learno ESP32 Node 2 (`esp2`)
 
-Second ESP32 device for telemetry.
+This firmware runs on the second ESP32 board (`learno-esp32-02`) and sends sensor telemetry to the Learno IoT server.
+
+## Captured metrics
+
+- `lightLux` from BH1750
+- `mq7Raw`, `mq7Voltage`, `mq7LevelPct` from MQ-7 analog input
+- `co2Ppm` estimated from MQ-7 trend model
+- optional `temperatureC` and `humidityPct` from DHT22 (if enabled)
 
 ## Configuration
 
-Edit `include/secrets.h` with your WiFi and server settings:
+Edit `include/secrets.h`:
 
 ```cpp
-constexpr char WIFI_SSID[] = "YourWiFi";
-constexpr char WIFI_PASSWORD[] = "YourPassword";
-constexpr char API_HOST[] = "192.168.1.184";
+constexpr char WIFI_SSID[] = "YourWiFiName";
+constexpr char WIFI_PASSWORD[] = "YourWiFiPassword";
+constexpr char API_HOST[] = "192.168.1.100";
 ```
 
-## Build & Flash
+`include/device_config.h` defines the endpoint:
 
-```bash
-cd esp2
+- `API_PORT = 3001`
+- `API_PATH = /api/telemetry`
+
+## Build
+
+```powershell
+cd learno-iot/esp2
 python -m platformio run
-python -m platformio run --target upload --upload-port COM3
 ```
 
-## Sensors
+## Flash
 
-- MQ7 (CO2) on GPIO34
-- BH1750 (light) on I2C (GPIO21 SDA, GPIO22 SCL)
-- DHT22 (disabled by default)
+```powershell
+cd learno-iot/esp2
+python -m platformio run --target upload --upload-port COM4
+```
+
+Replace `COM4` with your board port.
+
+## Serial monitor
+
+```powershell
+cd learno-iot/esp2
+python -m platformio device monitor --port COM4 --baud 115200
+```
+
+## Pin mapping
+
+- BH1750 SDA: GPIO21
+- BH1750 SCL: GPIO22
+- DHT22 data: GPIO4
+- MQ-7 analog output: GPIO34
+
+## Sensor toggles
+
+Edit `include/device_config.h`:
+
+- `USE_BH1750`
+- `USE_DHT22`
+- `USE_MQ7_SENSOR`
