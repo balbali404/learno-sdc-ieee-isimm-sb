@@ -579,12 +579,25 @@ export function MyLessonsPage({ lessonId, standalone = false }: MyLessonsPagePro
   if (standalone && lessonId) {
     if (loadError && !selectedLesson) {
       return (
-        <div className="relative z-10 rounded-xl border border-[#D6EAF8] bg-white px-4 py-8 text-center text-sm text-[#8FB8E0]">
+        <div
+          className="relative z-10 rounded-xl px-4 py-8 text-center text-sm"
+          style={{
+            background:
+              "linear-gradient(155deg, var(--student-card-gradient-a, rgba(59,130,246,0.1)) 0%, var(--student-card-gradient-b, rgba(30,58,138,0.06)) 100%), var(--color-surface)",
+            border: "var(--student-card-border-width, 1px) solid var(--color-border)",
+            color: "var(--color-text-muted)",
+          }}
+        >
           <p>{loadError}</p>
           <button
             type="button"
             onClick={closeLesson}
-            className="mt-4 rounded-lg border border-[#D6EAF8] bg-[#EAF4FB] px-4 py-2 text-sm font-semibold text-[#4A8CC0] transition-opacity hover:opacity-90"
+            className="mt-4 rounded-lg px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90"
+            style={{
+              border: "1px solid var(--color-border)",
+              background: "var(--color-surface)",
+              color: "var(--color-accent)",
+            }}
           >
             Back to lessons
           </button>
@@ -594,7 +607,15 @@ export function MyLessonsPage({ lessonId, standalone = false }: MyLessonsPagePro
 
     if (isLoadingLessonDetail || !selectedLesson) {
       return (
-        <div className="relative z-10 rounded-xl border border-[#D6EAF8] bg-white px-4 py-8 text-center text-sm text-[#8FB8E0]">
+        <div
+          className="relative z-10 rounded-xl px-4 py-8 text-center text-sm"
+          style={{
+            background:
+              "linear-gradient(155deg, var(--student-card-gradient-a, rgba(59,130,246,0.1)) 0%, var(--student-card-gradient-b, rgba(30,58,138,0.06)) 100%), var(--color-surface)",
+            border: "var(--student-card-border-width, 1px) solid var(--color-border)",
+            color: "var(--color-text-muted)",
+          }}
+        >
           <Loader2 size={16} className="mx-auto mb-2 animate-spin" />
           Loading lesson details...
         </div>
@@ -607,24 +628,40 @@ export function MyLessonsPage({ lessonId, standalone = false }: MyLessonsPagePro
   return (
     <div className="relative z-10 flex flex-col gap-6 pb-20 md:pb-24">
       <div>
-        <h1 className="text-2xl font-bold text-[#2F3A4A]">My Lessons</h1>
-        <p className="mt-1 text-sm text-[#8FB8E0]">
-          {lessons.length} lessons - {completedLessonsCount} completed
+        <h1 className="text-2xl font-bold" style={{ color: "var(--color-text)" }}>
+          My Lessons
+        </h1>
+        <p className="mt-1 text-sm" style={{ color: "var(--color-text-muted)" }}>
+          {lessons.length} lessons • {completedLessonsCount} completed
         </p>
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <div className="flex min-w-[220px] flex-1 items-center gap-2 rounded-xl border border-[#D6EAF8] bg-white px-3 py-2.5">
-          <Search size={15} className="text-[#8FB8E0]" />
+        <div
+          className="flex min-w-[220px] flex-1 items-center gap-2 rounded-xl px-3 py-2.5"
+          style={{
+            background: "var(--color-surface)",
+            border: "1px solid var(--color-border)",
+          }}
+        >
+          <Search size={15} style={{ color: "var(--color-text-muted)" }} />
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search lessons..."
-            className="flex-1 bg-transparent text-sm text-[#2F3A4A] outline-none placeholder:text-[#A7C7E7]"
+            className="flex-1 bg-transparent text-sm outline-none"
+            style={{ color: "var(--color-text)" }}
           />
         </div>
 
-        <div className="inline-flex items-center gap-2 rounded-xl border border-[#D6EAF8] bg-white px-3 py-2.5 text-sm text-[#6FA8DC]">
+        <div
+          className="inline-flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm"
+          style={{
+            border: "1px solid var(--color-border)",
+            background: "var(--color-surface)",
+            color: "var(--color-accent)",
+          }}
+        >
           <Filter size={15} />
           Filter
         </div>
@@ -653,12 +690,28 @@ export function MyLessonsPage({ lessonId, standalone = false }: MyLessonsPagePro
       </div>
 
       {isLoading ? (
-        <div className="rounded-xl border border-[#D6EAF8] bg-white px-4 py-8 text-center text-sm text-[#8FB8E0]">
+        <div
+          className="rounded-xl px-4 py-8 text-center text-sm"
+          style={{
+            background:
+              "linear-gradient(155deg, var(--student-card-gradient-a, rgba(59,130,246,0.1)) 0%, var(--student-card-gradient-b, rgba(30,58,138,0.06)) 100%), var(--color-surface)",
+            border: "var(--student-card-border-width, 1px) solid var(--color-border)",
+            color: "var(--color-text-muted)",
+          }}
+        >
           <Loader2 size={16} className="mx-auto mb-2 animate-spin" />
           Loading lessons...
         </div>
       ) : loadError ? (
-        <div className="rounded-xl border border-[#D6EAF8] bg-white px-4 py-8 text-center text-sm text-[#8FB8E0]">
+        <div
+          className="rounded-xl px-4 py-8 text-center text-sm"
+          style={{
+            background:
+              "linear-gradient(155deg, var(--student-card-gradient-a, rgba(59,130,246,0.1)) 0%, var(--student-card-gradient-b, rgba(30,58,138,0.06)) 100%), var(--color-surface)",
+            border: "var(--student-card-border-width, 1px) solid var(--color-border)",
+            color: "var(--color-text-muted)",
+          }}
+        >
           {loadError}
         </div>
       ) : (
@@ -671,7 +724,13 @@ export function MyLessonsPage({ lessonId, standalone = false }: MyLessonsPagePro
                 key={lesson.id}
                 type="button"
                 onClick={() => openLesson(lesson.id)}
-                className="rounded-2xl border border-[#D6EAF8] bg-white p-4 text-left transition-all hover:scale-[1.01] hover:shadow-md"
+                className="rounded-2xl p-4 text-left transition-all hover:scale-[1.01]"
+                style={{
+                  background:
+                    "linear-gradient(155deg, var(--student-card-gradient-a, rgba(59,130,246,0.1)) 0%, var(--student-card-gradient-b, rgba(30,58,138,0.06)) 100%), var(--color-surface)",
+                  border: "var(--student-card-border-width, 1px) solid var(--color-border)",
+                  boxShadow: "var(--student-card-shadow)",
+                }}
               >
                 <div className="mb-3 flex items-start gap-3">
                   <div
@@ -682,26 +741,36 @@ export function MyLessonsPage({ lessonId, standalone = false }: MyLessonsPagePro
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs font-bold text-[#2F3A4A]">{lesson.title}</p>
-                    <p className="text-[10px] text-[#8FB8E0]">{lesson.subject}</p>
+                    <p className="truncate text-xs font-bold" style={{ color: "var(--color-text)" }}>
+                      {lesson.title}
+                    </p>
+                    <p className="text-[10px]" style={{ color: "var(--color-text-muted)" }}>
+                      {lesson.subject}
+                    </p>
                   </div>
 
                   <span className="text-[10px]" style={{ color: accent.badgeText }}>+{lesson.xp} XP</span>
                 </div>
 
-                <p className="mb-3 line-clamp-2 text-xs leading-relaxed text-[#8FB8E0]">
+                <p className="mb-3 line-clamp-2 text-xs leading-relaxed" style={{ color: "var(--color-text-muted)" }}>
                   {lesson.description}
                 </p>
 
-                <div className="mb-1 flex items-center justify-between text-[11px] text-[#8FB8E0]">
+                <div className="mb-1 flex items-center justify-between text-[11px]" style={{ color: "var(--color-text-muted)" }}>
                   <span>{lesson.durationMin} min</span>
                   <span>{lesson.progress}%</span>
                 </div>
 
-                <div className="h-1.5 rounded-full bg-[#EAF4FB]">
+                <div
+                  className="h-1.5 rounded-full"
+                  style={{ background: "rgba(var(--student-primary-rgb, 44 62 80), 0.12)" }}
+                >
                   <div
                     className="h-1.5 rounded-full"
-                    style={{ width: `${lesson.progress}%`, background: accent.badgeText }}
+                    style={{
+                      width: `${lesson.progress}%`,
+                      background: "linear-gradient(90deg, var(--color-accent), var(--color-primary))",
+                    }}
                   />
                 </div>
               </button>
@@ -709,7 +778,10 @@ export function MyLessonsPage({ lessonId, standalone = false }: MyLessonsPagePro
           })}
 
           {filteredLessons.length === 0 ? (
-            <div className="col-span-full rounded-2xl border border-dashed border-[#D6EAF8] bg-white px-4 py-8 text-center text-sm text-[#8FB8E0]">
+            <div
+              className="col-span-full rounded-2xl border border-dashed px-4 py-8 text-center text-sm"
+              style={{ background: "var(--color-surface)", borderColor: "var(--color-border)", color: "var(--color-text-muted)" }}
+            >
               No lessons match your filters.
             </div>
           ) : null}

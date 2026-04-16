@@ -449,6 +449,18 @@ export function LessonDetail({
     Advanced: "bg-rose-100 text-rose-700 border-rose-200",
   };
 
+  const themedPanelStyle = {
+    background:
+      "linear-gradient(155deg, var(--student-card-gradient-a, rgba(59,130,246,0.1)) 0%, var(--student-card-gradient-b, rgba(30,58,138,0.06)) 100%), var(--color-surface)",
+    borderColor: "var(--color-border)",
+    boxShadow: "var(--student-card-shadow)",
+  } as const;
+
+  const themedSoftPanelStyle = {
+    background: "var(--color-surface)",
+    borderColor: "var(--color-border)",
+  } as const;
+
   return (
     <div
       className={`flex flex-col ${
@@ -543,11 +555,15 @@ export function LessonDetail({
           className={`hidden lg:flex flex-col w-72 shrink-0 border-r transition-all duration-300 ${
             focusMode
               ? "bg-transparent border-white/10 backdrop-blur-xl"
-              : "bg-white/60 backdrop-blur-xl border-sky-100/60"
+              : "backdrop-blur-xl"
           }`}
+          style={focusMode ? undefined : themedPanelStyle}
         >
           {/* Back + title */}
-          <div className={`p-5 border-b ${focusMode ? "border-slate-700/60" : "border-sky-100/40"}`}>
+          <div
+            className={`p-5 border-b ${focusMode ? "border-slate-700/60" : ""}`}
+            style={focusMode ? undefined : { borderColor: "var(--color-border)" }}
+          >
             <button
               onClick={onBack}
               className={`flex items-center gap-2 text-sm font-bold mb-4 transition-colors ${
@@ -640,7 +656,10 @@ export function LessonDetail({
           </div>
 
           {/* Key terms quick ref */}
-          <div className={`p-4 border-t ${focusMode ? "border-slate-700/60" : "border-sky-100/40"}`}>
+          <div
+            className={`p-4 border-t ${focusMode ? "border-slate-700/60" : ""}`}
+            style={focusMode ? undefined : { borderColor: "var(--color-border)" }}
+          >
             <p className={`text-[10px] font-black uppercase tracking-widest mb-3 ${focusMode ? "text-slate-500" : "text-slate-400"}`}>
               Key Terms
             </p>
@@ -657,19 +676,29 @@ export function LessonDetail({
         {/* CENTER: Content */}
         <main className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
           {/* Top Toolbar */}
-           <header className={`shrink-0 px-6 py-4 border-b flex items-center justify-between gap-4 ${
-             focusMode
-               ? "bg-transparent border-white/10 backdrop-blur-xl"
-               : "bg-white/70 backdrop-blur-xl border-sky-100/60"
-           }`}>
+          <header
+            className={`shrink-0 px-6 py-4 border-b flex items-center justify-between gap-4 ${
+              focusMode ? "bg-transparent border-white/10 backdrop-blur-xl" : "backdrop-blur-xl"
+            }`}
+            style={focusMode ? undefined : themedPanelStyle}
+          >
             {/* Left: chapter title + info */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-0.5 lg:hidden">
-                <button onClick={onBack} className={`flex items-center gap-1 text-xs font-bold ${focusMode ? "text-slate-400" : "text-slate-500"}`}>
+                <button
+                  onClick={onBack}
+                  className={`flex items-center gap-1 text-xs font-bold ${focusMode ? "text-slate-400" : ""}`}
+                  style={focusMode ? undefined : { color: "var(--color-text-muted)" }}
+                >
                   <ArrowLeft size={13} /> Back
                 </button>
               </div>
-              <h4 className={`font-black truncate ${focusMode ? "text-white" : "text-slate-800"}`}>{chapter.title}</h4>
+              <h4
+                className={`font-black truncate ${focusMode ? "text-white" : ""}`}
+                style={focusMode ? undefined : { color: "var(--color-text)" }}
+              >
+                {chapter.title}
+              </h4>
               <div className="flex items-center gap-3 mt-0.5">
                 <span className={`text-[11px] font-bold flex items-center gap-1 ${focusMode ? "text-slate-400" : "text-slate-400"}`}>
                   <Clock size={10} strokeWidth={2.5} /> {chapter.duration} min
@@ -940,13 +969,17 @@ export function LessonDetail({
         </main>
 
         {/* RIGHT: Tools Panel */}
-        <aside className={`hidden xl:flex flex-col w-64 shrink-0 border-l p-4 gap-4 ${
-          focusMode
-            ? "bg-transparent border-white/10 backdrop-blur-xl"
-            : "bg-white/50 backdrop-blur-xl border-sky-100/40"
-        }`}>
+        <aside
+          className={`hidden xl:flex flex-col w-64 shrink-0 border-l p-4 gap-4 ${
+            focusMode ? "bg-transparent border-white/10 backdrop-blur-xl" : "backdrop-blur-xl"
+          }`}
+          style={focusMode ? undefined : themedPanelStyle}
+        >
           {/* Quick stats */}
-          <div className={`rounded-2xl p-4 border ${focusMode ? "bg-white/5 border-white/10" : "bg-gradient-to-br from-sky-50 to-cyan-50 border-sky-100"}`}>
+          <div
+            className={`rounded-2xl p-4 border ${focusMode ? "bg-white/5 border-white/10" : ""}`}
+            style={focusMode ? undefined : themedSoftPanelStyle}
+          >
             <p className={`text-[10px] font-black uppercase tracking-widest mb-3 ${focusMode ? "text-slate-500" : "text-slate-400"}`}>
               Session
             </p>
@@ -968,7 +1001,10 @@ export function LessonDetail({
           </div>
 
           {/* Key points */}
-          <div className={`rounded-2xl p-4 border flex-1 ${focusMode ? "bg-white/5 border-white/10" : "bg-gradient-to-br from-slate-50 to-sky-50/40 border-slate-100"}`}>
+          <div
+            className={`rounded-2xl p-4 border flex-1 ${focusMode ? "bg-white/5 border-white/10" : ""}`}
+            style={focusMode ? undefined : themedSoftPanelStyle}
+          >
             <div className="flex items-center gap-2 mb-3">
               <Sparkles size={14} className={focusMode ? "text-sky-400" : "text-sky-500"} strokeWidth={2.5} />
               <p className={`text-[10px] font-black uppercase tracking-widest ${focusMode ? "text-slate-400" : "text-slate-400"}`}>Key Points</p>
