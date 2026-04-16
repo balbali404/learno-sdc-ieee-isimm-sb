@@ -24,7 +24,7 @@ def generate_advice_text(analytics: dict, session_name: str) -> str:
     system_prompt, user_prompt = build_advice_prompt(analytics, session_name)
 
     print("Calling Gemini API to generate teacher advice...")
-    advice_text = call_gemini_api(system_prompt, user_prompt)
+    advice_text = call_gemini_api(system_prompt, user_prompt, max_tokens=2048)
     print(f"Received {len(advice_text)} characters from Gemini")
     return advice_text
 

@@ -14,7 +14,15 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, HRFlowable
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
-from .config import GEMINI_MODEL, GEMINI_CONNECT_TIMEOUT_SEC, GEMINI_REQUEST_TIMEOUT_SEC, build_gemini_url
+from .config import (
+    GEMINI_MODEL,
+    GEMINI_CONNECT_TIMEOUT_SEC,
+    GEMINI_REQUEST_TIMEOUT_SEC,
+    GEMINI_MODELS_TO_TRY,
+    GEMINI_HTTP_MAX_RETRIES,
+    GEMINI_HTTP_RETRY_BASE_DELAY_SEC,
+    build_gemini_url,
+)
 from .prompts import build_lesson_prompt
 
 # ── Arabic text support ──────────────────────────────────
@@ -94,9 +102,20 @@ def _clean_arabic(text: str) -> str:
     return _reshape_arabic(cleaned)
 
 
+def _is_retryable_status(status_code: int) -> bool:
+    return status_code in {429, 500, 502, 503, 504}
+
+
 def call_gemini_api(system_prompt: str, user_prompt: str, max_tokens: int = 8192, model_name: str = None) -> str:
     """Call Gemini API and return the generated text."""
-    model = model_name or GEMINI_MODEL
+    preferred_model = model_name or GEMINI_MODEL
+    models_to_try = [preferred_model]
+    if model_name is None:
+        models_to_try = GEMINI_MODELS_TO_TRY or [GEMINI_MODEL]
+
+    max_retries = max(1, GEMINI_HTTP_MAX_RETRIES)
+    base_delay = max(0.1, GEMINI_HTTP_RETRY_BASE_DELAY_SEC)
+
     payload = {
         "contents": [
             {"role": "user", "parts": [{"text": f"{system_prompt}\n\n{user_prompt}"}]}
@@ -107,54 +126,81 @@ def call_gemini_api(system_prompt: str, user_prompt: str, max_tokens: int = 8192
         }
     }
 
-    started_at = time.time()
     timeout_value = (GEMINI_CONNECT_TIMEOUT_SEC, GEMINI_REQUEST_TIMEOUT_SEC)
-    print(
-        f"  → Gemini request started for {model} (connect_timeout={GEMINI_CONNECT_TIMEOUT_SEC}s, read_timeout={GEMINI_REQUEST_TIMEOUT_SEC}s)"
-    )
+    last_error: Exception | None = None
 
-    try:
-        response = requests.post(build_gemini_url(model), json=payload, timeout=timeout_value)
-        response.raise_for_status()
-    except requests.Timeout as exc:
-        elapsed = time.time() - started_at
-        raise TimeoutError(
-            f"Gemini request timed out after {elapsed:.1f}s (connect={GEMINI_CONNECT_TIMEOUT_SEC}s, read={GEMINI_REQUEST_TIMEOUT_SEC}s)"
-        ) from exc
-    except requests.HTTPError as exc:
-        status_code = exc.response.status_code if exc.response is not None else "unknown"
-        body_preview = exc.response.text[:500] if exc.response is not None else ""
+    for model_idx, model in enumerate(models_to_try, start=1):
+        for attempt in range(1, max_retries + 1):
+            started_at = time.time()
+            response = None
+            print(
+                f"  → Gemini request started for {model} "
+                f"(model {model_idx}/{len(models_to_try)}, attempt {attempt}/{max_retries}, "
+                f"connect_timeout={GEMINI_CONNECT_TIMEOUT_SEC}s, read_timeout={GEMINI_REQUEST_TIMEOUT_SEC}s)"
+            )
+            try:
+                response = requests.post(build_gemini_url(model), json=payload, timeout=timeout_value)
+                response.raise_for_status()
+
+                try:
+                    data = response.json()
+                except ValueError as exc:
+                    response_preview = response.text[:500] if response is not None else ""
+                    raise ValueError(
+                        f"Gemini returned non-JSON response. Preview: {response_preview}"
+                    ) from exc
+
+                candidates = data.get("candidates", [])
+                if not candidates:
+                    raise ValueError("No candidates returned from Gemini API")
+
+                content = candidates[0].get("content", {})
+                parts = content.get("parts", [])
+                if not parts:
+                    raise ValueError("No parts in Gemini response")
+
+                output_text = parts[0].get("text", "")
+                if not output_text or not output_text.strip():
+                    raise ValueError("Gemini response text is empty")
+
+                return output_text
+            except requests.Timeout as exc:
+                elapsed = time.time() - started_at
+                last_error = TimeoutError(
+                    f"Gemini request timed out after {elapsed:.1f}s "
+                    f"(connect={GEMINI_CONNECT_TIMEOUT_SEC}s, read={GEMINI_REQUEST_TIMEOUT_SEC}s)"
+                )
+            except requests.HTTPError as exc:
+                status_code = exc.response.status_code if exc.response is not None else None
+                body_preview = exc.response.text[:500] if exc.response is not None else ""
+                last_error = RuntimeError(
+                    f"Gemini HTTP error {status_code if status_code is not None else 'unknown'}. "
+                    f"Response preview: {body_preview}"
+                )
+
+                if status_code is not None and not _is_retryable_status(status_code):
+                    raise last_error from exc
+            except requests.RequestException as exc:
+                last_error = RuntimeError(f"Gemini request failed: {exc}")
+            finally:
+                elapsed = time.time() - started_at
+                print(f"  ← Gemini request for {model} finished in {elapsed:.1f}s")
+
+            if attempt < max_retries:
+                backoff = min(8.0, base_delay * (2 ** (attempt - 1)))
+                print(f"  🔄 Retryable Gemini failure on {model}; retrying in {backoff:.1f}s...")
+                time.sleep(backoff)
+            else:
+                print(f"  ❌ Model {model} exhausted {max_retries} HTTP attempts")
+
+        if model_idx < len(models_to_try):
+            print("  🔁 Switching to Gemini fallback model...")
+
+    if last_error is not None:
         raise RuntimeError(
-            f"Gemini HTTP error {status_code}. Response preview: {body_preview}"
-        ) from exc
-    except requests.RequestException as exc:
-        raise RuntimeError(f"Gemini request failed: {exc}") from exc
-    finally:
-        elapsed = time.time() - started_at
-        print(f"  ← Gemini request for {model} finished in {elapsed:.1f}s")
-
-    try:
-        data = response.json()
-    except ValueError as exc:
-        response_preview = response.text[:500] if response is not None else ""
-        raise ValueError(
-            f"Gemini returned non-JSON response. Preview: {response_preview}"
-        ) from exc
-
-    candidates = data.get("candidates", [])
-    if not candidates:
-        raise ValueError("No candidates returned from Gemini API")
-
-    content = candidates[0].get("content", {})
-    parts = content.get("parts", [])
-    if not parts:
-        raise ValueError("No parts in Gemini response")
-
-    output_text = parts[0].get("text", "")
-    if not output_text or not output_text.strip():
-        raise ValueError("Gemini response text is empty")
-
-    return output_text
+            f"Gemini failed after trying models: {', '.join(models_to_try)}. Last error: {last_error}"
+        ) from last_error
+    raise RuntimeError("Gemini failed without a captured error")
 
 
 def build_lesson_pdf(
