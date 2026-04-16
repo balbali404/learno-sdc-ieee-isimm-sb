@@ -9,7 +9,7 @@ Learno is an AI-supported smart classroom platform. It combines:
 
 This repository is a workspace containing all services.
 
-## Project at a glance
+## Project
 
 - **For schools:** monitor sessions, engagement, alerts, and reports.
 - **For teachers:** run sessions, review AI outputs, track classes and student support.
@@ -80,7 +80,7 @@ npx prisma migrate dev
 npx prisma db seed
 ```
 
-### 4) Run services (three terminals)
+### 4) Run services
 
 Backend:
 
