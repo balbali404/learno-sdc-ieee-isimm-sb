@@ -9,7 +9,7 @@ Learno is an AI-supported smart classroom platform. It combines:
 
 This repository is a workspace containing all services.
 
-## Project at a glance (jury friendly)
+## Project at a glance
 
 - **For schools:** monitor sessions, engagement, alerts, and reports.
 - **For teachers:** run sessions, review AI outputs, track classes and student support.
@@ -25,7 +25,7 @@ This repository is a workspace containing all services.
 |  |- backend/    # Express + Prisma API (auth, RBAC, realtime, AI integration)
 |
 |- learno-ai/     # FastAPI AI processing service (audio/video + lesson/advice generation)
-|- learno-iot/    # ESP32 + telemetry pilot (kept separate)
+|- learno-iot/   
 ```
 
 ## High-level architecture
@@ -48,7 +48,7 @@ Users (Teacher / Student / Guardian / Admin)
                     +--> webhook callbacks to backend
 ```
 
-## Quick start (local demo)
+## Quick start
 
 ### 1) Prerequisites
 
@@ -116,14 +116,7 @@ npm run dev
 - AI health: `http://localhost:8000/health`
 - Legacy frontend: `http://localhost:4000/app`
 
-## Seed demo accounts
 
-After `npx prisma db seed`:
-
-- Admin: `admin@learno.com` / `Admin123!`
-- Teacher: `farah@learno.com` / `Password123!`
-- Guardian: `guardian@learno.com` / `Password123!`
-- Students: `*@student.learno.com` / `Password123!`
 
 ## Documentation index
 
@@ -134,4 +127,4 @@ After `npx prisma db seed`:
 - `learno-web/frontend/README.md` - legacy static prototype
 - `learno-web/backend/API_DOCS.md` - detailed endpoint reference
 - `learno-web/backend/all.md` - backend architecture deep dive
-- `RAPPORT_TECHNIQUE.md` - technical report
+
