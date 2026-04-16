@@ -37,7 +37,7 @@ et_xmlfile==2.0.0
 executing==2.1.0
 fastapi==0.135.1
 faster-whisper==1.2.1
-fastjsonschema==2.21.2
+fastjsonschema
 filelock==3.25.2
 Flask==3.1.2
 flask-cors==6.0.2
