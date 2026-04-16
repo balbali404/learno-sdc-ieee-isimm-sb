@@ -1,20 +1,24 @@
-# Learno Raspberry Pi 5 Node
+# Learno Raspberry Pi 5 - Camera + Microphone + AI Flow
 
-This folder contains Raspberry Pi 5 sensor scripts that publish telemetry to the Learno IoT server.
+Raspberry Pi 5 is a required runtime node in this IoT setup.
 
-## Scripts
+It runs camera and microphone-side acquisition scripts, sends telemetry to the IoT server, and provides media inputs for the AI pipeline.
 
-- `microphone.py` - reads MQ-7 analog values and publishes `mq7Raw`, `mq7Voltage`, `mq7LevelPct`, and `co2Ppm`.
-- `camera.py` - captures camera frames and publishes brightness/motion-derived metrics to telemetry.
+## Runtime role
 
-## Prerequisites (Raspberry Pi 5)
+- Run `camera.py` for continuous camera capture/analysis.
+- Run `microphone.py` for periodic MQ-7 based environmental telemetry.
+- Send data to `learno-iot/server` (`POST /api/telemetry`).
+- Feed media and session context to the AI service (`learno-ai`) for analysis outputs.
 
-- Raspberry Pi OS with Python 3
-- Network access to telemetry server
-- Camera connected and enabled (for `camera.py`)
-- MQ-7 connected through a valid ADC input path (for `microphone.py`)
+## Prerequisites
 
-Install Python packages:
+- Raspberry Pi 5 with Raspberry Pi OS
+- Python 3
+- Enabled camera interface
+- Network route to IoT server and AI service
+
+Install dependencies:
 
 ```bash
 cd learno-iot/raspberry-pi5
@@ -22,41 +26,61 @@ python3 -m pip install --upgrade pip
 python3 -m pip install opencv-python numpy
 ```
 
-## Configure server destination
+## Configure destination host
 
-In both `camera.py` and `microphone.py`, set:
+In both scripts, set:
 
-- `API_HOST` = server machine IP
+- `API_HOST` = IoT server IP
 - `API_PORT` = `3001`
 - `API_PATH` = `/api/telemetry`
 
-## Run MQ-7 telemetry
+Files to edit:
+
+- `camera.py`
+- `microphone.py`
+
+## Run microphone path
 
 ```bash
 cd learno-iot/raspberry-pi5
 python3 microphone.py
 ```
 
-The script performs warm-up and then sends periodic telemetry.
+This process starts sensor warm-up, then continuously publishes telemetry payloads.
 
-## Run camera telemetry and capture
+## Run camera path
 
-Continuous stream:
+Continuous runtime:
 
 ```bash
 cd learno-iot/raspberry-pi5
 python3 camera.py stream
 ```
 
-Single capture:
+Single capture output:
 
 ```bash
 cd learno-iot/raspberry-pi5
 python3 camera.py capture classroom.jpg
 ```
 
-## Integration behavior
+## Connect with AI and get outputs
 
-- Payloads are sent to the same API as ESP32 (`POST /api/telemetry`).
-- Data appears in latest/history endpoints from the server.
-- Device IDs identify each source node independently.
+1. Keep IoT server running on port `3001`.
+2. Keep Raspberry Pi 5 scripts running.
+3. Start AI service from `learno-ai` on port `8000`.
+4. Send/record session media through AI endpoints.
+5. Read AI outputs from session result endpoints.
+
+AI output endpoints:
+
+- `GET http://<ai-host>:8000/health`
+- `GET http://<ai-host>:8000/sessions`
+- `GET http://<ai-host>:8000/session/{session_id}/result`
+- `GET http://<ai-host>:8000/session/{session_id}/alerts`
+
+## Validation
+
+- IoT server `GET /api/latest` shows Raspberry Pi 5 device data.
+- IoT server `GET /api/history` includes continuous updates.
+- AI service endpoints return active sessions and analysis outputs.
