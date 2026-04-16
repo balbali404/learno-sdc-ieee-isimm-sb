@@ -7,7 +7,8 @@ export const metadata: Metadata = {
   description:
     "Learno - AI-supported smart classroom platform",
   icons: {
-    icon: "/favicon.ico",
+    icon: "/logo/logo.png",
+    apple: "/logo/logo.png",
   },
 };
 
